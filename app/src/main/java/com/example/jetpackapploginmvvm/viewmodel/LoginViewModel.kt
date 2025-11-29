@@ -9,6 +9,11 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+enum class AppScreens{
+    LOGIN,
+    WELCOME,
+    SETTINGS
+}
 // Estat inicial per la UI de Login.
 // Els tres continguts en blanc.
 data class LoginUiState(
@@ -16,6 +21,7 @@ data class LoginUiState(
     val password: String = "",
     val message: String = "",
     val errorMsg: String = "",
+    val screenState: AppScreens = AppScreens.LOGIN
 )
 
 // sealed: només pot ser un objecte definit a la mateixa llibreria que LoginEvent.
@@ -68,11 +74,16 @@ class LoginViewModel : ViewModel() {
             _uiState.value = current.copy(errorMsg = "ERROR: L'usuari no existeix !!", message = "")
         } else {
             if( storedUser.password == current.password) {
-                _uiState.value = current.copy(message = "Login Exitós !!", errorMsg = "", username = "", password ="")
+                // Alerta, si canvio aquí l'username no el podré recollir per salidar!
+                _uiState.value = current.copy(message = "Login Exitós !!", errorMsg = "", password ="", screenState = AppScreens.WELCOME)
             } else {
                 _uiState.value = current.copy(message = "", errorMsg =  "ERROR: Credencials invàlides !!")
             }
         }
+    }
+
+    fun onLogoutClick(){
+        _uiState.value = _uiState.value.copy(message = "", errorMsg = "", username = "", password ="", screenState = AppScreens.LOGIN)
     }
 
     fun onCloseClick(){
