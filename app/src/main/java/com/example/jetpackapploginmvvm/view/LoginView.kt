@@ -62,8 +62,8 @@ fun LoginRoute(
     // Pinto la pantalla amb les dades adequades.
     LoginScreen(
         state = uiStateCompose.value, // La vista vol només éls valors.
-        onUserChangeName = viewModel::onUserChangeName,
-        onPasswordChange = viewModel::onPasswordChangeName,
+        onUsernameChange = viewModel::onUsernameChange,
+        onPasswordChange = viewModel::onPasswordChange,
         onRegisterClick = viewModel::onRegisterClick,
         onLoginClick = viewModel::onLoginClick,
         onCloseClick = viewModel::onCloseClick
@@ -74,7 +74,7 @@ fun LoginRoute(
 @Composable
 private fun LoginScreen(
     state: LoginUiState,
-    onUserChangeName: (String) -> Unit,
+    onUsernameChange: (String) -> Unit,
     onPasswordChange: (String) -> Unit,
     onRegisterClick: () -> Unit,
     onLoginClick: () -> Unit,
@@ -93,7 +93,7 @@ private fun LoginScreen(
                 .fillMaxWidth()
         )
 
-        OutlinedTextField( value = state.username, onValueChange = onUserChangeName, label = { Text("User") })
+        OutlinedTextField( value = state.username, onValueChange = onUsernameChange, label = { Text("User") })
         OutlinedTextField( value = state.password, onValueChange = onPasswordChange, label = { Text("Pass") })
 
         Row {

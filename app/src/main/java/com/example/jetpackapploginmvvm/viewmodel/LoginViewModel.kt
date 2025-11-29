@@ -43,11 +43,11 @@ class LoginViewModel : ViewModel() {
     private val _eventFlow = MutableSharedFlow<LoginEvent>()
     val eventFlow = _eventFlow.asSharedFlow()
 
-    fun onUserChangeName(input: String) {
+    fun onUsernameChange(input: String) {
         _uiState.value = _uiState.value.copy(input, message = "", errorMsg = "")
     }
 
-    fun onPasswordChangeName(input: String) {
+    fun onPasswordChange(input: String) {
         _uiState.value = _uiState.value.copy(password = input, message = "", errorMsg = "")
     }
 
