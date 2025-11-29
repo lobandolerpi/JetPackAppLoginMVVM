@@ -11,7 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.jetpackapploginmvvm.ui.theme.AppMVVMTheme
-import com.example.jetpackapploginmvvm.view.LoginRoute
+import com.example.jetpackapploginmvvm.view.ConnectorRoute
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -22,7 +22,7 @@ class MainActivity : ComponentActivity() {
                 Surface (
                     modifier = Modifier.fillMaxSize()
                 ){
-                    LoginRoute(
+                    ConnectorRoute(
                         onCloseApp = {this.finish()}
                     )
                 }

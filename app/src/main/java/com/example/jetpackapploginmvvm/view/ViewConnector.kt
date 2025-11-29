@@ -9,7 +9,7 @@ import com.example.jetpackapploginmvvm.viewmodel.LoginEvent
 import com.example.jetpackapploginmvvm.viewmodel.LoginViewModel
 
 @Composable
-fun LoginRoute(
+fun ConnectorRoute(
     onCloseApp: () -> Unit,
     // Espero que em passis una funció sense arguments que no retorna res
     viewModel: LoginViewModel = viewModel()
@@ -78,7 +78,6 @@ fun LoginRoute(
             )
         }
     }
-
 }
 
 
