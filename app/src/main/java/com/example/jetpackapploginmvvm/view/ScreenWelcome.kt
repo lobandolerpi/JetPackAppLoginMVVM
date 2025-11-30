@@ -20,10 +20,9 @@ import com.example.jetpackapploginmvvm.viewmodel.LoginUiState
 // COM PINTO LA PANTALLA?
 @Composable
 fun ScreenWelcome(
-    state: LoginUiState,
+    msgWelcome: String,
     onLogoutClick: () -> Unit,
     onCloseClick: () -> Unit,
-    msgWelcome: String
 ){
     Column (
         modifier = Modifier

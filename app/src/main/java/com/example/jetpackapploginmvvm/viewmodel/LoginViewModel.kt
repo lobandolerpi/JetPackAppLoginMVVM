@@ -3,17 +3,13 @@ package com.example.jetpackapploginmvvm.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.jetpackapploginmvvm.model.User
-import kotlinx.coroutines.flow.MutableSharedFlow
+import com.example.jetpackapploginmvvm.navigation.AppScreens
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 
-enum class AppScreens{
-    LOGIN,
-    WELCOME,
-    SETTINGS
-}
 // Estat inicial per la UI de Login.
 // Els tres continguts en blanc.
 data class LoginUiState(
@@ -21,16 +17,10 @@ data class LoginUiState(
     val password: String = "",
     val message: String = "",
     val errorMsg: String = "",
-    val screenState: AppScreens = AppScreens.LOGIN
+    val isLoading: Boolean = false
 )
 
-// sealed: només pot ser un objecte definit a la mateixa llibreria que LoginEvent.
-// A dins de la interfície li diem que només accepti CloseApp com a LoginEvent vàlid.
-sealed interface LoginEvent {
-    data object  CloseApp : LoginEvent
-}
-
-// ViewModel és una classe de Kotling per aplicacions.
+// ViewModel és una classe de Kotlin per aplicacions.
 // Aquí estem creant una extensió d'aquesta classe.
 class LoginViewModel : ViewModel() {
     // La lògica de la nostra App ha de tenir el Hashmap de clients:
@@ -44,10 +34,10 @@ class LoginViewModel : ViewModel() {
     val uiState = _uiState.asStateFlow() // Aquesta, agafará sempre el valor de la privada
 
 
-    // Configuració dels events que ens poden canviar la App IMPERATIVAMENT
-    // Igual que els estats pero Shared en lloc de States.
-    private val _eventFlow = MutableSharedFlow<LoginEvent>()
-    val eventFlow = _eventFlow.asSharedFlow()
+    // Canviar de pantalla és un event, però és únic.
+    // És millor fer servir Channel en aquests casos.
+    private val _navigationChannel = Channel<String>()
+    val navigationChannel = _navigationChannel.receiveAsFlow()
 
     fun onUsernameChange(input: String) {
         _uiState.value = _uiState.value.copy(input, message = "", errorMsg = "")
@@ -74,19 +64,18 @@ class LoginViewModel : ViewModel() {
             _uiState.value = current.copy(errorMsg = "ERROR: L'usuari no existeix !!", message = "")
         } else {
             if( storedUser.password == current.password) {
-                // Alerta, si canvio aquí l'username no el podré recollir per salidar!
-                _uiState.value = current.copy(message = "Login Exitós !!", errorMsg = "", password ="", screenState = AppScreens.WELCOME)
+                // ARA, per canviar de pantalla he de crear un event (launch)
+                // que envii l'ordre de navegar mitjançant el canal adequat.
+                viewModelScope.launch {
+                    _navigationChannel.send(AppScreens.Welcome.createRoute(current.username))
+                    _uiState.value = LoginUiState() // Netejo camps
+                }
             } else {
                 _uiState.value = current.copy(message = "", errorMsg =  "ERROR: Credencials invàlides !!")
             }
         }
     }
 
-    fun onLogoutClick(){
-        _uiState.value = _uiState.value.copy(message = "", errorMsg = "", username = "", password ="", screenState = AppScreens.LOGIN)
-    }
-
-    fun onCloseClick(){
-        viewModelScope.launch { _eventFlow.emit(LoginEvent.CloseApp) }
-    }
+    // onCloseClick  ARA no és responsabilitat del ViewModel
+    // Es una acció del Sistema Operatiu i ho gestiona la Vista.
 }
