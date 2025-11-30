@@ -3,6 +3,7 @@ package com.example.jetpackapploginmvvm.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.jetpackapploginmvvm.model.User
+import com.example.jetpackapploginmvvm.model.UserRepository
 import com.example.jetpackapploginmvvm.navigation.AppScreens
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,8 +24,7 @@ data class LoginUiState(
 // ViewModel és una classe de Kotlin per aplicacions.
 // Aquí estem creant una extensió d'aquesta classe.
 class LoginViewModel : ViewModel() {
-    // La lògica de la nostra App ha de tenir el Hashmap de clients:
-    private val users = mutableMapOf<String, User>()
+    // El Hashmap de clients, ara l'hem d'importar
 
     // L'estat de l'aplicació és privat, només el viewmodel el pot canviar
     // Però la vista l'ha de poder veure.
@@ -49,17 +49,22 @@ class LoginViewModel : ViewModel() {
 
     fun onRegisterClick(){
         val current = _uiState.value
-        if (users.containsKey(current.username)) {
-            _uiState.value = current.copy(errorMsg = "ERROR: L'usuari ja existeix !!", message = "")
-        } else {
-            users[current.username] = User(current.username, current.password)
-            _uiState.value = current.copy(message = "Usuari registrat correctament !!", username = "", password ="", errorMsg = "")
+        if(current.username.isNotBlank() && current.password.isNotBlank()){
+            //
+            val isSuccess = UserRepository.addUser(User(current.username, current.password))
+
+            if(isSuccess) {
+                _uiState.value = current.copy(message = "Usuari registrat correctament !!", username = "", password ="", errorMsg = "")
+            } else {
+                _uiState.value = current.copy(errorMsg = "ERROR: L'usuari ja existeix !!", message = "")
+            }
         }
     }
 
     fun onLoginClick(){
         val current = _uiState.value
-        val storedUser = users[current.username] //Això pot ser null !!
+        // users  passa a ser UserRepository (un singleton)
+        val storedUser = UserRepository.getUser(current.username)
         if (storedUser == null) {
             _uiState.value = current.copy(errorMsg = "ERROR: L'usuari no existeix !!", message = "")
         } else {
