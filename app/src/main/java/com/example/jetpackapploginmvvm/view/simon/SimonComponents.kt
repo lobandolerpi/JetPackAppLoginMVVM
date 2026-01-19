@@ -22,7 +22,7 @@ fun SimonButton(
         modifier = Modifier
             .padding(8.dp)
             .aspectRatio(1f)
-            .shadow(elevation = 8.dp, shape = RoundedCornerShape(16 dp))
+            .shadow(elevation = 8.dp, shape = RoundedCornerShape(16.dp))
             .clip(RoundedCornerShape(16.dp))
             .background(gameColor.color)
             .clickable { onClick() }
