@@ -12,6 +12,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.jetpackapploginmvvm.view.ScreenLogin
 import com.example.jetpackapploginmvvm.view.ScreenWelcome
+import com.example.jetpackapploginmvvm.view.simon.ScreenSimon
 import com.example.jetpackapploginmvvm.viewmodel.LoginViewModel
 
 @Composable
@@ -81,7 +82,22 @@ fun AppNavigation(
                         popUpTo(0)
                     }
                 },
+                onCloseClick = onCloseApp,
+                // NOU EVENT: Quan clickem jugar!
+                onStartGame = {
+                    navController.navigate(AppScreens.Simon.route)
+                }
+            )
+        }
+
+        // NOVA RUTA 3 : La pantalla del Simon
+        composable (route = AppScreens.Simon.route){
+            ScreenSimon(
+                onBackClick = {navController.popBackStack()},
+                //torna enrera 1 a l'historial de navegació.
+
                 onCloseClick = onCloseApp
+                // Hem definit onCloseApp de manera general.
             )
         }
     }

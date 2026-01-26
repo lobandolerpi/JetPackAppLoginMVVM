@@ -23,6 +23,7 @@ fun ScreenWelcome(
     msgWelcome: String,
     onLogoutClick: () -> Unit,
     onCloseClick: () -> Unit,
+    onStartGame:() -> Unit, // Ara aquesta pantalla pot executar el joc
 ){
     Column (
         modifier = Modifier
@@ -40,6 +41,15 @@ fun ScreenWelcome(
                 .padding(16.dp)
                 .fillMaxWidth()
         )
+
+        Button(
+            onClick = onStartGame,
+            modifier = Modifier.padding(vertical = 24.dp)
+        ) {
+            Text(
+                text="Jugar al Simon",
+                fontSize = 20.sp)
+        }
 
         Button(onClick = onLogoutClick) {Text("Canviar Usuari")}
 
