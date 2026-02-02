@@ -14,5 +14,10 @@ enum class GameColor (val id: Int, val color: Color, val label:String){
     CYAN(6, Color(red=0, green = 255, blue = 255), "Cian"),
     PINK(7, Color(red=255, green = 0, blue = 200), "Rosa"),
     PURPLE(8, Color(red=125, green = 0, blue = 255), "Lila"),
-    LIME(9, Color(red = 160, green = 210, blue = 0), "Llima"),
+    LIME(9, Color(red = 160, green = 210, blue = 0), "Llima");
+
+    companion object{
+        fun getColorsForLevel(numColors: Int) = values().take(numColors)
+    }
 }
+

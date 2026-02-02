@@ -15,17 +15,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.jetpackapploginmvvm.model.GameColor
+import com.example.jetpackapploginmvvm.viewmodel.SimonViewmodel
 
 // Amb això evitarem una lambda.
 // el que fa es crear un Botó Simon Button.
 @Composable
-fun CrearBotoSimon(color: GameColor){
+fun CrearBotoSimon(color: GameColor, viewmodel: SimonViewmodel){
     SimonButton(
         gameColor = color,
         onClick = {
             // TODO: Sessió 2 (Il·luminar)
             // Sessió 2: Cal posar la lògica aquí.
+            viewmodel.onColorClick(color)
             println("Clicar: ${color.label}")
         }
     )
@@ -36,13 +39,15 @@ fun ScreenSimon(
     // La pantalla és vista, no sap com funciona la nevegació.
     // M'han de passar que fan els botons.
     onBackClick: () -> Unit,
-    onCloseClick: () -> Unit
+    onCloseClick: () -> Unit,
+    viewmodel: SimonViewmodel = viewModel() // Injectem el ViewModel
 ){
-    val gridSize = 2 // Mode Facil
+    val state = viewmodel.uiState.value // Observem l'estat
+    val gridSizeX = viewmodel.uiState.value.gridSizeX // Mode Facil
     // val gridSize = 3 // Mode dificil.
 
     // Faig un nou enum, on afago segons la dificultat del joc.
-    val activeColors = GameColor.entries.take(gridSize * gridSize)
+    val activeColors = state.colors
     // El primer contenidor serà fixe, sempre a dalt de la pantalla
     // Per tant Column
     Column(
@@ -50,17 +55,33 @@ fun ScreenSimon(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceBetween
     ){
+        val llistaColors = viewmodel.uiState.value.colors
+        val textMsg = viewmodel.uiState.value.message
         // Text pel títol
         Text(
             text="Simon dice",
             fontSize = 32.sp,
             modifier = Modifier.padding(top=32.dp)
             )
+        // Text filler
+        Text(
+            text="nivell 1",
+            fontSize = 22.sp,
+            modifier = Modifier.padding(top=16.dp)
+        )
+
+        // Missatge check
+        Text(
+            text=viewmodel.uiState.value.message,
+            fontSize = 22.sp,
+            modifier = Modifier.padding(top=16.dp)
+            )
+
         // Aquí alguns jocs no cabrà tot en pantalla
         // per tant és millor un lazy vertical grid
         // per optimitzar memòria.
         LazyVerticalGrid(
-            columns = GridCells.Fixed(gridSize),
+            columns = GridCells.Fixed(gridSizeX),
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -68,9 +89,9 @@ fun ScreenSimon(
         ) {
             // al Grid hi haurà "botons, del meu joc"
             // que son components que tenen com a paràmetre l'enum del color.
-            for (itColor in activeColors) {
+            for (itColor in viewmodel.uiState.value.colors) {
                 item {
-                    CrearBotoSimon(color = itColor)
+                    CrearBotoSimon(color = itColor, viewmodel = viewmodel)
                 }
             }
 
