@@ -5,6 +5,11 @@ package com.example.jetpackapploginmvvm.model
 object UserRepository {
     private val users = mutableMapOf<String, User>()
 
+    init {
+        addUser(User("a","a"))
+        addUser(User("b","b"))
+        addUser(User("c","c"))
+    }
     fun addUser(user: User): Boolean {
         if (users.containsKey(user.username)) {
             return false
