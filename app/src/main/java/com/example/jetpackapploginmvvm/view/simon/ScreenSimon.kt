@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -15,25 +14,25 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.jetpackapploginmvvm.model.GameColor
+import com.example.jetpackapploginmvvm.viewmodel.ButtonState
 import com.example.jetpackapploginmvvm.viewmodel.SimonViewmodel
 
 // Amb això evitarem una lambda.
 // el que fa es crear un Botó Simon Button.
 @Composable
-fun CrearBotoSimon(color: GameColor, viewmodel: SimonViewmodel){
+fun CrearBotoSimon(btnState: ButtonState, viewmodel: SimonViewmodel){
     //Funció que passaré com argument
     fun gestionarClicColor() {
-        // TODO: Sessió 2 (Il·luminar)
-        // Sessió 2: Cal posar la lògica aquí.
-        viewmodel.onColorClick(color)
-        println("Clicar: ${color.label}")
+        // S2: La lògica està al viewmodel.
+        viewmodel.onColorClick(btnState.color)
+        println("Clicar: ${btnState.color.label}")
     }
 
 
     SimonButton(
-        gameColor = color,
+        buttonState = btnState,
         onClick = ::gestionarClicColor // funció com argument.
     )
 }
@@ -44,14 +43,13 @@ fun ScreenSimon(
     // M'han de passar que fan els botons.
     onBackClick: () -> Unit,
     onCloseClick: () -> Unit,
-    viewmodel: SimonViewmodel = viewModel() // Injectem el ViewModel
+    viewModel: SimonViewmodel = viewModel() // Injectem el ViewModel
 ){
-    val state = viewmodel.uiState.value // Observem l'estat
-    val gridSizeX = viewmodel.uiState.value.gridSizeX // Mode Facil
+    // by    cal importar    import androidx.compose.runtime.getValue
+    val state by viewModel.uiState // Observem l'estat
+    val gridSizeX = viewModel.uiState.value.gridSizeX // Mode Facil
     // val gridSize = 3 // Mode dificil.
 
-    // Faig un nou enum, on afago segons la dificultat del joc.
-    val activeColors = state.colors
     // El primer contenidor serà fixe, sempre a dalt de la pantalla
     // Per tant Column
     Column(
@@ -59,8 +57,9 @@ fun ScreenSimon(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceBetween
     ){
-        val llistaColors = viewmodel.uiState.value.colors
-        val textMsg = viewmodel.uiState.value.message
+        // by    cal importar    import androidx.compose.runtime.getValue
+        //
+        val textMsg = state.message
         // Text pel títol
         Text(
             text="Simon dice",
@@ -76,7 +75,7 @@ fun ScreenSimon(
 
         // Missatge check
         Text(
-            text=viewmodel.uiState.value.message,
+            text=state.message,
             fontSize = 22.sp,
             modifier = Modifier.padding(top=16.dp)
             )
@@ -92,43 +91,12 @@ fun ScreenSimon(
             modifier = Modifier.weight(1f)
         ) {
             // al Grid hi haurà "botons, del meu joc"
-            // que son components que tenen com a paràmetre l'enum del color.
-            for (itColor in viewmodel.uiState.value.colors) {
+            // que son components que ara tenen estats
+            for (stButton in state.buttons) {
                 item {
-                    CrearBotoSimon(color = itColor, viewmodel = viewmodel)
+                    CrearBotoSimon(btnState = stButton, viewmodel = viewModel)
                 }
             }
-
-            /*
-            // VERSIÓ AVANÇADA (AMB LAMBDES)
-            // La funció 'items' fa el bucle per nosaltres.
-            items(activeColors) {
-                itemColor -> // <--- INICI PRIMERA LAMBDA (EL BUCLE)
-
-                // 1. Què és 'itemColor'?
-                // És la VARIABLE que conté la dada d'aquesta volta del bucle.
-                // (A literació 1 serà el compoent Vermell de l'enum, a la 2 Groc...).
-
-                // 2. Què fa la fletxa '->'?
-                // Separa les dades d'entrada (esquerra) del codi a executar (dreta).
-
-                SimonButton(
-                    gameColor = itemColor,
-                    onClick = {
-                        // <--- INICI SEGONA LAMBDA (L'ACCIÓ)
-
-                        // 3. Per què això també és una lambda?
-                        // Perquè és un bloc de codi que NO s'executa ara.
-                        // S'envia "empaquetat" dins del botó i s'executarà
-                        // només quan l'usuari faci clic en el futur.
-
-                        // TODO: Sessió 2 (Il·luminar)
-                        // Sessió 2: Cal posar la lògica aquí.
-                        println("Clicar: ${color.label}")
-                    }
-                )
-            }
-            */
         }
 
         Column (
