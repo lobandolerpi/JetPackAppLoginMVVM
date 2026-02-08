@@ -1,5 +1,6 @@
 package com.example.jetpackapploginmvvm.model
 
+import androidx.compose.runtime.internal.isLiveLiteralsEnabled
 import androidx.compose.ui.graphics.Color
 
 enum class GameColor (val id: Int, val color: Color, val label:String){
@@ -17,7 +18,15 @@ enum class GameColor (val id: Int, val color: Color, val label:String){
     LIME(9, Color(red = 160, green = 210, blue = 0), "Llima");
 
     companion object{
-        fun getColorsForLevel(numColors: Int) = values().take(numColors)
+        fun getColorsForLevel(numColors: Int): List<GameColor> {
+            val llistaCompleta = values().toList()
+            return llistaCompleta.subList(0, numColors)
+        }
     }
+
+    // Amb Lambdes
+    //companion object{
+    //    fun getColorsForLevel(numColors: Int) = values().take(numColors)
+    //}
 }
 

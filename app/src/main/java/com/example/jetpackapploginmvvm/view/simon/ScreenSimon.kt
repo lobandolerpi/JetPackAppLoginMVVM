@@ -23,14 +23,18 @@ import com.example.jetpackapploginmvvm.viewmodel.SimonViewmodel
 // el que fa es crear un Botó Simon Button.
 @Composable
 fun CrearBotoSimon(color: GameColor, viewmodel: SimonViewmodel){
+    //Funció que passaré com argument
+    fun gestionarClicColor() {
+        // TODO: Sessió 2 (Il·luminar)
+        // Sessió 2: Cal posar la lògica aquí.
+        viewmodel.onColorClick(color)
+        println("Clicar: ${color.label}")
+    }
+
+
     SimonButton(
         gameColor = color,
-        onClick = {
-            // TODO: Sessió 2 (Il·luminar)
-            // Sessió 2: Cal posar la lògica aquí.
-            viewmodel.onColorClick(color)
-            println("Clicar: ${color.label}")
-        }
+        onClick = ::gestionarClicColor // funció com argument.
     )
 }
 

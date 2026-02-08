@@ -28,6 +28,7 @@ fun SimonButton(
             )
             .clip(RoundedCornerShape(16.dp))
             .background(gameColor.color)
-            .clickable { onClick() }
+            .clickable ( onClick = onClick ) // Sense lambda, el paràmetre es la funció que rebo com a paràmetre.
+            //.clickable { onClick() } // Amb lambda
     )
 }

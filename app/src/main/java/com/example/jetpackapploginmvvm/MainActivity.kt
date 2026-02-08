@@ -20,9 +20,16 @@ class MainActivity : ComponentActivity() {
         setContent {
             AppMVVMTheme {
                 AppNavigation(
-                    onCloseApp = { this.finish()}
+                    // Aquesta funció és global a tota la app, la defineixo al Main i la passo com argument.
+                    // així totes les pantalles i viewmodels poden fer-la servir.
+                    onCloseApp = ::finalitzarAplicacio
                 )
             }
         }
+    }
+
+    // Defineixo la funció fora per estalviarme una Lambda.
+    private fun finalitzarAplicacio() {
+        this.finish();
     }
 }
