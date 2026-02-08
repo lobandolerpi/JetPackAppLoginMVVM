@@ -10,8 +10,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import com.example.jetpackapploginmvvm.navigation.AppNavigation
 import com.example.jetpackapploginmvvm.ui.theme.AppMVVMTheme
-import com.example.jetpackapploginmvvm.view.LoginRoute
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -19,30 +19,17 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             AppMVVMTheme {
-                Surface (
-                    modifier = Modifier.fillMaxSize()
-                ){
-                    LoginRoute(
-                        onCloseApp = {this.finish()}
-                    )
-                }
+                AppNavigation(
+                    // Aquesta funció és global a tota la app, la defineixo al Main i la passo com argument.
+                    // així totes les pantalles i viewmodels poden fer-la servir.
+                    onCloseApp = ::finalitzarAplicacio
+                )
             }
         }
     }
-}
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    AppMVVMTheme {
-        Greeting("Android")
+    // Defineixo la funció fora per estalviarme una Lambda.
+    private fun finalitzarAplicacio() {
+        this.finish();
     }
 }
