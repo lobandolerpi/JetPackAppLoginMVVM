@@ -1,6 +1,8 @@
 package com.example.jetpackapploginmvvm.view.simon
 
 import android.R
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -16,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.unit.dp
 import com.example.jetpackapploginmvvm.model.GameColor
@@ -26,6 +29,8 @@ fun SimonButton(
     buttonState: ButtonState,
     onClick: () -> Unit
 ){
+
+    // Precalculem colors igual
     val baseColor = buttonState.color.color
     val backGroundColor =
         if ( buttonState.isLit ) {
@@ -45,6 +50,31 @@ fun SimonButton(
     val shadowColor = if ( buttonState.isLit ) { baseColor } else { Color.Black }
     val glowColor = if ( buttonState.isLit ) { baseColor.copy(alpha = 0.15f) } else { Color.Transparent}
 
+    // S03 Lògica d'animació
+    // compose calcula els colors intermitjos.
+    val animatedBackGColor by animateColorAsState(
+        targetValue = backGroundColor,
+        animationSpec = tween(200),
+        label = "BackGColorAnimation"
+    )
+
+    val animatedShadowGColor by animateColorAsState(
+        targetValue = shadowColor,
+        animationSpec = tween(200),
+        label = "BackGColorAnimation"
+    )
+
+    val animatedGlowGColor by animateColorAsState(
+        targetValue = glowColor,
+        animationSpec = tween(200),
+        label = "BackGColorAnimation"
+    )
+
+
+
+
+
+
     Box(
         modifier = Modifier
             .padding(4.dp)
@@ -60,7 +90,7 @@ fun SimonButton(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(
-                        glowColor,
+                        animatedGlowGColor,
                         shape= RoundedCornerShape(20.dp)
                     )
                     .blur(15.dp)
@@ -73,11 +103,11 @@ fun SimonButton(
                 .shadow(
                     elevation = shadowElevation,
                     shape = RoundedCornerShape(16.dp),
-                    ambientColor = shadowColor,
-                    spotColor = shadowColor
+                    ambientColor = animatedShadowGColor,
+                    spotColor = animatedShadowGColor
                 )
                 .clip(RoundedCornerShape(16.dp))
-                .background(backGroundColor)
+                .background(animatedBackGColor)
                 .clickable(onClick = onClick),
             contentAlignment = Alignment.Center
         ) {

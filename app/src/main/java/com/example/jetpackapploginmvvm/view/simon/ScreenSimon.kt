@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -46,7 +47,8 @@ fun ScreenSimon(
     viewModel: SimonViewmodel = viewModel() // Injectem el ViewModel
 ){
     // by    cal importar    import androidx.compose.runtime.getValue
-    val state by viewModel.uiState // Observem l'estat
+    // S03, ATENCIÓ SI FEM SERVIR FLOW, HEM DEL COLLECTASSTATE
+    val state by viewModel.uiState.collectAsState() // Observem l'estat
     val gridSizeX = viewModel.uiState.value.gridSizeX // Mode Facil
     // val gridSize = 3 // Mode dificil.
 
@@ -79,6 +81,14 @@ fun ScreenSimon(
             fontSize = 22.sp,
             modifier = Modifier.padding(top=16.dp)
             )
+
+        //S03 He afegit aquest botó per separar lògiques
+        Button(
+            onClick = { viewModel.startGame() },
+            enabled = !state.isGameStarted  // Habilitat si no juguem o Game Over
+        ) {
+            Text(if (state.isGameStarted) "Jugant... " else "START")
+        }
 
         // Aquí alguns jocs no cabrà tot en pantalla
         // per tant és millor un lazy vertical grid
