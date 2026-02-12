@@ -21,6 +21,7 @@ local.properties
 /.idea/caches
 /.idea/modules.xml
 /.idea/navEditor.xml
+/.idea/*
 
 # File-based project format
 *.iml
