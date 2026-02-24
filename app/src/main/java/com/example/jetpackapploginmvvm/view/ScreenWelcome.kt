@@ -47,7 +47,7 @@ fun ScreenWelcome(
             modifier = Modifier.padding(vertical = 24.dp)
         ) {
             Text(
-                text="Jugar al Simon",
+                text="Jugar al Ahorcado",
                 fontSize = 20.sp)
         }
 

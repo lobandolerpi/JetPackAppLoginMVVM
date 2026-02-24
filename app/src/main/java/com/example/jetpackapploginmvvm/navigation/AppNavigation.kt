@@ -17,6 +17,10 @@ import com.example.jetpackapploginmvvm.view.ScreenLogin
 import com.example.jetpackapploginmvvm.view.ScreenWelcome
 import com.example.jetpackapploginmvvm.view.simon.ScreenSimon
 import com.example.jetpackapploginmvvm.viewmodel.LoginViewModel
+import com.example.jetpackapploginmvvm.ahorcado.AhorcadoViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.jetpackapploginmvvm.view.ScreenAhorcado
+import com.example.jetpackapploginmvvm.view.ScreenGameOver
 
 // FUNCIONS AUXILIARS FIRA DE LA UI
 
@@ -47,10 +51,12 @@ fun AppNavigation(
 ){
     // El navegador és un tipus d'objecte de la llibreria navigation
     val navController = rememberNavController()
+    val ahorcadoViewModel: AhorcadoViewModel = viewModel()
     
     //Funcions de suport per als botons de les pantalles
     fun ferLogout() = navController.navigate(AppScreens.Login.route, ::configurarPopUpLogin)
     fun anarASimon() = navController.navigate(AppScreens.Simon.route)
+    fun anarAAhorcado() = navController.navigate(AppScreens.AhorcadoScreen.route)
     fun tornarEnrere() = navController.popBackStack()
 
     // Funció de suport per processar la navegació que ve del ViewModel (Login)
@@ -110,7 +116,7 @@ fun AppNavigation(
                 onLogoutClick = ::ferLogout,
                 onCloseClick = onCloseApp,
                 // NOU EVENT: Quan clickem jugar!
-                onStartGame = ::anarASimon
+                onStartGame = ::anarAAhorcado
             )
         }
 
@@ -123,6 +129,15 @@ fun AppNavigation(
                 onCloseClick = onCloseApp
                 // Hem definit onCloseApp de manera general.
             )
+        }
+
+        composable(route = AppScreens.AhorcadoScreen.route) {
+            ScreenAhorcado(navController, ahorcadoViewModel)
+        }
+
+        composable(route = "game_over_screen/{result}") { backStackEntry ->
+            val resultado = backStackEntry.arguments?.getString("result") ?: "Fin"
+            ScreenGameOver(navController, resultado)
         }
     }
 }
