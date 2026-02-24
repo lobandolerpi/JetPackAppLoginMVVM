@@ -17,6 +17,11 @@ import com.example.jetpackapploginmvvm.view.ScreenLogin
 import com.example.jetpackapploginmvvm.view.ScreenWelcome
 import com.example.jetpackapploginmvvm.view.simon.ScreenSimon
 import com.example.jetpackapploginmvvm.viewmodel.LoginViewModel
+import com.example.jetpackapploginmvvm.view.ScreenMascotaCrear
+import com.example.jetpackapploginmvvm.view.ScreenMascotaJoc
+import com.example.jetpackapploginmvvm.view.ScreenMascotaMort
+import com.example.jetpackapploginmvvm.viewmodel.MascotaViewModel
+
 
 // FUNCIONS AUXILIARS FIRA DE LA UI
 
@@ -47,40 +52,31 @@ fun AppNavigation(
 ){
     // El navegador és un tipus d'objecte de la llibreria navigation
     val navController = rememberNavController()
-    
+    val mascotaViewModel: MascotaViewModel = viewModel()
     //Funcions de suport per als botons de les pantalles
     fun ferLogout() = navController.navigate(AppScreens.Login.route, ::configurarPopUpLogin)
     fun anarASimon() = navController.navigate(AppScreens.Simon.route)
     fun tornarEnrere() = navController.popBackStack()
 
-    // Funció de suport per processar la navegació que ve del ViewModel (Login)
+    fun anarACrearMascota() = navController.navigate(AppScreens.MascotaCrear.route)
+    fun anarAlJocMascota() = navController.navigate(AppScreens.MascotaJoc.route)
+    fun anarAMascotaMort() = navController.navigate(AppScreens.MascotaMort.route)
+
     fun processarRutaViewModelLogin(route: String) {
-        // Em pases un string i li dic al controlador on ha d'anar i om.
         navController.navigate(route, ::configurarPopUpLogin)
     }
-    
-    
-    // Això també és un objecte de la llibreria
-    NavHost(
-        navController = navController,
-        startDestination = AppScreens.Login.route
-    ){      // Aqui es defineixen les rutes
-        // RUTA 1: Login
+
+    NavHost(navController = navController, startDestination = AppScreens.Login.route) {
+
         composable( route= AppScreens.Login.route ){
-            // instancia del viewModel de Login
             val viewModel: LoginViewModel = viewModel()
 
             val state by viewModel.uiState.collectAsState()
-            // by es un operador que delega la responsabilitat de gestionar
-            // com s'assigna l'objecte (en aquest cas els valors de l'estat)
 
-            // Escoltem ordres de navegació
             LaunchedEffect(key1 = true) {
-                // Les pot donar el viewModel (en aquest cas LoginViewModel
                 viewModel.navigationChannel.collect ( ::processarRutaViewModelLogin)
             }
 
-            // Finalment pintem la pantalla que ens han demanat si hem arribat aquí
             ScreenLogin(
                 state = state,
                 onUsernameChange = viewModel::onUsernameChange,
@@ -93,36 +89,66 @@ fun AppNavigation(
 
 
 
-        // RUTA 2 : WELCOME
         composable(
             route = AppScreens.Welcome.route,
             arguments = listOf(navArgument("username", :: configurarArgUsername))
-        ){
-            // Alerta  -> !!!
-            backStackEntry ->
-            // backStackEntry és un paràmetre de composable,
-            // en concret composable( route, arguments, (backStackEntry) -> {Lambda} )
+        ){ backStackEntry ->
             val username = backStackEntry.arguments?.getString("username") ?: "Desconegut"
 
-            // Welcome no té estats, però si username com a paràmetre
             ScreenWelcome(
                 msgWelcome = "Hola, $username",
                 onLogoutClick = ::ferLogout,
                 onCloseClick = onCloseApp,
-                // NOU EVENT: Quan clickem jugar!
-                onStartGame = ::anarASimon
+                onStartGame = {
+                    //AQUI compruebo si la mascota que tiene ese usuario ha muerto o no
+                    //si esta muerta le obligo a ir a crear sino va a la mascota
+                    if (mascotaViewModel.mascota != null && mascotaViewModel.mascota!!.estaViva) {
+                        anarAlJocMascota()
+                    } else {
+                        anarACrearMascota()
+                    }
+                }
             )
         }
 
-        // NOVA RUTA 3 : La pantalla del Simon
-        composable (route = AppScreens.Simon.route){
+        composable (route = AppScreens.Simon.route){ //le quite todo al simon :(
             ScreenSimon(
                 onBackClick = ::tornarEnrere,
-                //torna enrera 1 a l'historial de navegació.
 
                 onCloseClick = onCloseApp
-                // Hem definit onCloseApp de manera general.
+            )
+        }
+
+
+        composable(route = AppScreens.MascotaCrear.route) {
+            ScreenMascotaCrear(
+                viewModel = mascotaViewModel,
+                onMascotaCreada = ::anarAlJocMascota,
+                onBackClick = ::tornarEnrere
+            )
+        }
+
+        composable(route = AppScreens.MascotaJoc.route) {
+            ScreenMascotaJoc(
+                viewModel = mascotaViewModel,
+                onMascotaMorta = ::anarAMascotaMort,
+
+                onBackClick = {
+                    //Esto lo tuve que buscar para que si le dabas se fuese al welcome no a crear demonop
+                    navController.popBackStack(AppScreens.Welcome.route, inclusive = false)
+                }
+            )
+        }
+        composable(route = AppScreens.MascotaMort.route) {
+            ScreenMascotaMort(
+                viewModel = mascotaViewModel,
+                onReiniciarJoc = {
+                    //aqui igual es para que vaya a crear la mascota si reinicia
+                    navController.navigate(AppScreens.MascotaCrear.route) {
+                        popUpTo(AppScreens.MascotaCrear.route) { inclusive = true }
+                    }
+                }
             )
         }
     }
-}
+    }
