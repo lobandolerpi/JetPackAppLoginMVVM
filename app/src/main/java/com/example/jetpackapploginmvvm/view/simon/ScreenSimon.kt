@@ -49,7 +49,7 @@ fun ScreenSimon(
     // by    cal importar    import androidx.compose.runtime.getValue
     // S03, ATENCIÓ SI FEM SERVIR FLOW, HEM DEL COLLECTASSTATE
     val state by viewModel.uiState.collectAsState() // Observem l'estat
-    val gridSizeX = viewModel.uiState.value.gridSizeX // Mode Facil
+    val gridSizeX = state.gridSizeX // Mode Facil
     // val gridSize = 3 // Mode dificil.
 
     // El primer contenidor serà fixe, sempre a dalt de la pantalla
@@ -66,20 +66,22 @@ fun ScreenSimon(
         Text(
             text="Simon dice",
             fontSize = 32.sp,
-            modifier = Modifier.padding(top=32.dp)
+            modifier = Modifier.padding(top=16.dp)
             )
         // Text filler
         Text(
-            text="nivell 1",
+            text=state.title,
             fontSize = 22.sp,
-            modifier = Modifier.padding(top=16.dp)
+            modifier = Modifier.padding(top=8.dp)
         )
 
         // Missatge check
         Text(
             text=state.message,
+            minLines = 2, // S04 Força a ocupar sempre l'espai de 2 línies com a mínim
+            maxLines = 2,
             fontSize = 22.sp,
-            modifier = Modifier.padding(top=16.dp)
+            modifier = Modifier.padding(top=8.dp)
             )
 
         //S03 He afegit aquest botó per separar lògiques
@@ -95,9 +97,9 @@ fun ScreenSimon(
         // per optimitzar memòria.
         LazyVerticalGrid(
             columns = GridCells.Fixed(gridSizeX),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            contentPadding = PaddingValues(12.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
             modifier = Modifier.weight(1f)
         ) {
             // al Grid hi haurà "botons, del meu joc"
@@ -110,7 +112,7 @@ fun ScreenSimon(
         }
 
         Column (
-            modifier = Modifier.padding(bottom = 32.dp),
+            modifier = Modifier.padding(bottom = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ){
             Button(onClick = onBackClick) {

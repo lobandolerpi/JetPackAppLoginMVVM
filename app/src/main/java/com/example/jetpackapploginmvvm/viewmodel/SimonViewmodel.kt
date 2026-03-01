@@ -1,7 +1,5 @@
 package com.example.jetpackapploginmvvm.viewmodel
 
-import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.jetpackapploginmvvm.model.GameColor
@@ -20,21 +18,29 @@ data class ButtonState(
 
 // S2 canvio el llistat de colors a llistat d'estat dels butons, perquè conté totes les dades.
 data class SimonUiState(
+    // S4 TOT AIXÒ ARA CANVIA A PARTIR DEL NIVELL
     val title: String = "Nivell 1",
-    val isGameStarted: Boolean = false,
-    // Grid size 2 x 2 es nivell facil
     val gridSizeX: Int = 2,
     val gridSizeY: Int = 2,
+    val maxRounds: Int = 5,
+    val speedMsWait: Long = 250,
+    val speedMsGlow: Long = 600, // S04 tècnicament no el necessita la vista
+    // però el declaro aqui per uniformar on deso i canvio paràmetres.
+
+    val currentLevelIndex: Int = 0, // S4 Índex del llistat GAME_LEVELS
+    val isGameStarted: Boolean = false,
+    val isGamePaused: Boolean = false, // S4 cicle de vida.
+
     val buttons: List<ButtonState> = emptyList(),
     var message: String = "Joc inactiu: Prem un color per començar",
 
     // S3 Nous estats:
     val colorSequenceCPU: List<GameColor> = emptyList(), // S3 La combinació de colors a reproduir.
     val userTurnIndex: Int = 0, // Posició dins de la seqüència
-    val isUserTurn: Boolean = false, // Si no es turn de l'usuari, no pot fer res.
-    val maxRounds: Int = 5
+    val isUserTurn: Boolean = false, // Si no es turn de l'usuari, no pot fer res
 
 )
+
 
 class SimonViewmodel : ViewModel() {
     // S03 estats de SimonUiState amb Flow perquè és d elògica (veure apunts)
@@ -42,17 +48,40 @@ class SimonViewmodel : ViewModel() {
     val uiState = _uiState.asStateFlow()
 
     init {
-        // S03 Per llegibilitat i aprofitament
-        reiniciarTauler()
+        carregarNivell(0)
+        _uiState.value = _uiState.value.copy(
+            message = "Pitja Start per començar"
+        )
     }
-    fun reiniciarTauler(){
-        // Inicialitzem el taulell amb els 4 colors bàsics (2x2)
-        val GameColorReduit = GameColor.values().take(_uiState.value.gridSizeX* _uiState.value.gridSizeY)
-        val initialButtons = GameColorReduit.map {
-            color ->
-            ButtonState(color = color)
+    
+    // S04, ARA carregar el nivell actualitza moltes coses
+    private fun carregarNivell(index: Int) {
+        if (index >= GAME_LEVELS.size){
+            // No hauria d'arribar mai aquí.
+            _uiState.value = _uiState.value.copy(
+                title = "JOC SUPERAT COMPLETAMENT",
+                isGameStarted = false,
+                isUserTurn = false,
+                )
+            return
         }
-       _uiState.value = _uiState.value.copy(  buttons = initialButtons )
+        val config = GAME_LEVELS[index]
+        //val numBotons = config.rows * config.cols
+        _uiState.value = _uiState.value.copy(
+            isGameStarted = false, // Aturem el joc
+            isUserTurn = false,
+            currentLevelIndex = index,
+            title = "Nivell ${config.levelNumber}",
+            message = "ENHORABONA! \nHas superat el nivell ${index}",
+            gridSizeX = config.cols,
+            gridSizeY = config.rows,
+            maxRounds = config.roundsToWin,
+            speedMsGlow = config.speedMsGlow,
+            speedMsWait = config.speedMsWait,
+            colorSequenceCPU = emptyList(), // Reiniciem la seqüència
+            userTurnIndex = 0,
+            buttons = GameColor.getColorsForLevel(config.cols*config.rows).map { ButtonState(it) },
+        )
     }
 
     //S03 ara quan l'usuari clica un color passen moltes coses diferents
@@ -83,13 +112,15 @@ class SimonViewmodel : ViewModel() {
                      // Comprovant si s'acaba el nivell
                      if (uiStV.colorSequenceCPU.size >= uiStV.maxRounds){
                          // NIVELL SUPERAT ! (tots els colors i maxim colors.
-                         _uiState.value = uiStV.copy(
-                            isGameStarted = false, // Aturem el joc
-                            isUserTurn = false,
-                            message = "ENHORABONA! Has superat el Nivell 1!",
-                            colorSequenceCPU = emptyList(), // Reset per la pròxima
-                            userTurnIndex = 0
-                        )
+                         // ERA EL DARRER?
+                         if(uiStV.currentLevelIndex >= GAME_LEVELS.size -1){
+                             carregarNivell(0)
+                             _uiState.value = _uiState.value.copy(
+                                 message = "ENHORABONA! \nHas superat TOT EL JOC",
+                             )
+                         } else {
+                             carregarNivell(uiStV.currentLevelIndex +1)
+                         }
                      } else {
                          // El nivell segueix (tots els colors de la ronda, però no els maxims)
                          // Acabar Rondar i iniciar nova
@@ -135,9 +166,9 @@ class SimonViewmodel : ViewModel() {
         delay(1000)
         for (color in sequence) {
             iluminarBoto(color, true)
-            delay(500)
+            delay(_uiState.value.speedMsGlow) // S04 Ara això canvia !
             iluminarBoto(color,false)
-            delay(250)
+            delay(_uiState.value.speedMsWait)
         }
 
         _uiState.value = _uiState.value.copy(
