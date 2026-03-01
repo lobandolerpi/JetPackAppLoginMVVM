@@ -71,10 +71,6 @@ fun SimonButton(
     )
 
 
-
-
-
-
     Box(
         modifier = Modifier
             .padding(4.dp)
