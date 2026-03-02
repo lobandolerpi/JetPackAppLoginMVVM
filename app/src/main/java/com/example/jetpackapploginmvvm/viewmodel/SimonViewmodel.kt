@@ -3,6 +3,7 @@ package com.example.jetpackapploginmvvm.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.jetpackapploginmvvm.model.GameColor
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -30,6 +31,9 @@ data class SimonUiState(
     val currentLevelIndex: Int = 0, // S4 Índex del llistat GAME_LEVELS
     val isGameStarted: Boolean = false,
     val isGamePaused: Boolean = false, // S4 cicle de vida.
+    val timerValueInitial: Int = 20,
+    val timerValueRemaining: Int = -1,
+
 
     val buttons: List<ButtonState> = emptyList(),
     var message: String = "Joc inactiu: Prem un color per començar",
@@ -46,6 +50,7 @@ class SimonViewmodel : ViewModel() {
     // S03 estats de SimonUiState amb Flow perquè és d elògica (veure apunts)
     private val _uiState = MutableStateFlow(SimonUiState())
     val uiState = _uiState.asStateFlow()
+    private var timerJob: Job? = null
 
     init {
         carregarNivell(0)
@@ -63,6 +68,7 @@ class SimonViewmodel : ViewModel() {
                 isGameStarted = false,
                 isUserTurn = false,
                 )
+            pararTimer()
             return
         }
         val config = GAME_LEVELS[index]
@@ -82,22 +88,45 @@ class SimonViewmodel : ViewModel() {
             userTurnIndex = 0,
             buttons = GameColor.getColorsForLevel(config.cols*config.rows).map { ButtonState(it) },
         )
+        pararTimer()
     }
 
     // S04, per tornar del joc pausar pel que sigui
     fun anarAPausa() {
+        pararTimer()
         carregarNivell(_uiState.value.currentLevelIndex)
         _uiState.value = _uiState.value.copy(
             message = "El nivell ${_uiState.value.currentLevelIndex+1} s'ha interromput \n Prem Start per reiniciar-lo"
         )
     }
 
+    fun pararTimer() {
+        timerJob?.cancel()
+    }
+
+    fun iniciarTimer() {
+        timerJob?.cancel()
+        timerJob = viewModelScope.launch {
+            // Comença des del valor que hi hagi a l'estat (si eren 5s, comença a 5s)
+            for (i in _uiState.value.timerValueRemaining downTo 0) {
+                _uiState.value = _uiState.value.copy(timerValueRemaining = i)
+                delay(1000)
+            }
+            // Si arriba a 0, han perdut per temps: reiniciem el nivell i el temps total
+            _uiState.value = _uiState.value.copy(timerValueRemaining = 0)
+            anarAPausa()
+            _uiState.value = _uiState.value.copy(message = "TEMPS EXHAURIT!\nTorna a intentar-ho.")
+        }
+    }
+    
+    
     //S03 ara quan l'usuari clica un color passen moltes coses diferents
     fun onColorClick(clickedColor: GameColor) {
 
         // S03, ara comença la CPU i l'usuari no ha de poder fer res.
         if (!_uiState.value.isGameStarted || !_uiState.value.isUserTurn){
-             return
+            pararTimer()
+            return
         }
 
         // S03 Encenc perque usuari sàquiga que ho he captat
@@ -125,9 +154,13 @@ class SimonViewmodel : ViewModel() {
                              carregarNivell(0)
                              _uiState.value = _uiState.value.copy(
                                  message = "ENHORABONA! \nHas superat TOT EL JOC",
+                                 timerValueRemaining = _uiState.value.maxRounds*3,
                              )
                          } else {
                              carregarNivell(uiStV.currentLevelIndex +1)
+                             _uiState.value = _uiState.value.copy(
+                                 timerValueRemaining = _uiState.value.maxRounds*3,
+                             )
                          }
                      } else {
                          // El nivell segueix (tots els colors de la ronda, però no els maxims)
@@ -135,7 +168,9 @@ class SimonViewmodel : ViewModel() {
                         _uiState.value = uiStV.copy(
                             message = "Ronda completada! Espera...",
                             isUserTurn = false
+
                         )
+                        pararTimer()
                         viewModelScope.launch {
                             delay(1000)
                             novaRonda()
@@ -183,6 +218,7 @@ class SimonViewmodel : ViewModel() {
             isUserTurn = true,
             message = "El teu torn!"
         )
+        iniciarTimer()
     }
     // S03 01 Ara he d'iniciar ronda
     fun startGame() {
@@ -191,7 +227,14 @@ class SimonViewmodel : ViewModel() {
             colorSequenceCPU = emptyList(),
             message = "Repeteix la seqüència!"
         )
+        // Si el timerValue ja és 0 (perquè han perdut), el tornem a posar al màxim del nivell
+        if (_uiState.value.timerValueRemaining <= 0) {
+            _uiState.value = _uiState.value.copy(timerValueRemaining = _uiState.value.maxRounds*3)
+        }
+
         novaRonda()
+        iniciarTimer() // El timer reprèn des del valor actual de _uiState.value.timerValue
+
     }
     
     // S03 02 La nova ronda
@@ -206,6 +249,7 @@ class SimonViewmodel : ViewModel() {
             message = "Memoritza la seqüència de colors...",
             userTurnIndex = 0 // L'usuari comença des del principi
         )
+        pararTimer()
         
         // Llancem una corutina asincrona per reproduir seqüència
         viewModelScope.launch { 

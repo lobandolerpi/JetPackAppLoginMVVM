@@ -5,7 +5,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -127,14 +129,36 @@ fun ScreenSimon(
                 .background(colorBackG),
             )
         // Text filler
-        Text(
-            text=state.title,
-            fontSize = 24.sp,
-            color = colorText,
+        Row (
             modifier = Modifier
-                .padding(top=8.dp)
+                .fillMaxWidth()
+                .padding(16.dp)
                 .background(colorBackG),
-        )
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+
+        ){
+            Text(
+                text=state.title,
+                fontSize = 24.sp,
+                color = colorText,
+                modifier = Modifier
+                    .padding(top=8.dp)
+                    .background(colorBackG),
+            )
+
+            Text(
+                text="Temps: ${state.timerValueRemaining}",
+                fontSize = 24.sp,
+                color = if (state.timerValueRemaining < 5) Color.Red else colorText,
+                modifier = Modifier
+                    .padding(top=8.dp)
+                    .background(
+                        if (state.isUserTurn){ colorBackG} else { Color.Gray }
+                    ),
+            )
+
+        }
 
         // Missatge check
         Text(
