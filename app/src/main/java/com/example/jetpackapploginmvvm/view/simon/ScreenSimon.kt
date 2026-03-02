@@ -1,5 +1,6 @@
 package com.example.jetpackapploginmvvm.view.simon
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -16,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.jetpackapploginmvvm.viewmodel.ButtonState
 import com.example.jetpackapploginmvvm.viewmodel.SimonViewmodel
@@ -51,28 +54,41 @@ fun ScreenSimon(
     val state by viewModel.uiState.collectAsState() // Observem l'estat
     val gridSizeX = state.gridSizeX // Mode Facil
     // val gridSize = 3 // Mode dificil.
+    val colorBackG = Color(red = 40, green = 0, blue = 40)
+    val colorButton = Color(red = 120, green = 50, blue = 120)
+    val colorText = Color(red = 240, green = 240, blue = 200)
 
     // El primer contenidor serà fixe, sempre a dalt de la pantalla
     // Per tant Column
     Column(
-        modifier = Modifier.fillMaxSize().padding(16.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+            .background(colorBackG),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceBetween
+
     ){
         // by    cal importar    import androidx.compose.runtime.getValue
         //
         val textMsg = state.message
         // Text pel títol
         Text(
-            text="Simon dice",
+            text="Simon diu",
             fontSize = 32.sp,
-            modifier = Modifier.padding(top=16.dp)
+            color = colorText,
+            modifier = Modifier
+                .padding(top=16.dp)
+                .background(colorBackG),
             )
         // Text filler
         Text(
             text=state.title,
-            fontSize = 22.sp,
-            modifier = Modifier.padding(top=8.dp)
+            fontSize = 24.sp,
+            color = colorText,
+            modifier = Modifier
+                .padding(top=8.dp)
+                .background(colorBackG),
         )
 
         // Missatge check
@@ -80,12 +96,19 @@ fun ScreenSimon(
             text=state.message,
             minLines = 2, // S04 Força a ocupar sempre l'espai de 2 línies com a mínim
             maxLines = 2,
-            fontSize = 22.sp,
-            modifier = Modifier.padding(top=8.dp)
+            fontSize = 20.sp,
+            color = colorText,
+            modifier = Modifier
+                .padding(top=8.dp)
+                .background(colorBackG),
             )
 
         //S03 He afegit aquest botó per separar lògiques
         Button(
+            colors = ButtonDefaults.buttonColors(
+                containerColor = colorButton,
+                contentColor = colorText
+            ),
             onClick = { viewModel.startGame() },
             enabled = !state.isGameStarted  // Habilitat si no juguem o Game Over
         ) {
@@ -100,7 +123,9 @@ fun ScreenSimon(
             contentPadding = PaddingValues(12.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp),
             horizontalArrangement = Arrangement.spacedBy(4.dp),
-            modifier = Modifier.weight(1f)
+            modifier = Modifier
+                .weight(1f)
+                .background(colorBackG),
         ) {
             // al Grid hi haurà "botons, del meu joc"
             // que son components que ara tenen estats
@@ -112,13 +137,24 @@ fun ScreenSimon(
         }
 
         Column (
-            modifier = Modifier.padding(bottom = 16.dp),
+            modifier = Modifier.padding(bottom = 16.dp)
+                .background(colorBackG),
             horizontalAlignment = Alignment.CenterHorizontally
         ){
-            Button(onClick = onBackClick) {
+            Button(
+                onClick = onBackClick,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = colorButton,
+                    contentColor = colorText
+                ),) {
                 Text("Tornar al menú")
             }
-            Button(onClick = onCloseClick) {
+            Button(
+                onClick = onCloseClick,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = colorButton,
+                    contentColor = colorText
+                ),) {
                 Text("Tancar App")
             }
 
