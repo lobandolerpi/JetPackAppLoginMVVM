@@ -1,5 +1,6 @@
 package com.example.jetpackapploginmvvm.view.simon
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -12,6 +13,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -19,6 +21,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.jetpackapploginmvvm.viewmodel.ButtonState
 import com.example.jetpackapploginmvvm.viewmodel.SimonViewmodel
@@ -49,6 +54,46 @@ fun ScreenSimon(
     onCloseClick: () -> Unit,
     viewModel: SimonViewmodel = viewModel() // Injectem el ViewModel
 ){
+
+    //S04  EL CICLE DE VIDA !!!
+    // Són esdeveniments que envia el OS segons la situació de la app.
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val TAG = "SIMON_LIFECYCLE"
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            Log.d(TAG, "EVENT: ${event.name}")
+            // S04 Switch complet amb els 6 esdeveniments
+            when (event) {
+                Lifecycle.Event.ON_CREATE -> Log.d(TAG, "1. ON_CREATE: Pantalla creada")
+                Lifecycle.Event.ON_START -> Log.d(TAG, "2. ON_START: Pantalla visible")
+                Lifecycle.Event.ON_RESUME -> {
+                    Log.d(TAG, "3. ON_RESUME: L'usuari ja pot interactuar")
+                    // Podríem reprendre el timer aquí si volguéssim ser més permissius
+                }
+                Lifecycle.Event.ON_PAUSE -> {
+                    Log.d(TAG, "4. ON_PAUSE: L'usuari perd el focus (pausa el joc!)")
+                    viewModel.anarAPausa()
+                }
+                Lifecycle.Event.ON_STOP -> Log.d(TAG, "5. ON_STOP: Ja no és visible")
+                Lifecycle.Event.ON_DESTROY -> Log.d(TAG, "6. ON_DESTROY: L'activitat es destrueix")
+                else -> {}
+            }
+        }
+
+        lifecycleOwner.lifecycle.addObserver(observer)
+
+        onDispose {
+            // Important: el DisposableEffect de Compose gestiona el "Leave" del component
+            Log.w(TAG, "COMPOSE ON_DISPOSE: Neteja de l'observador")
+            lifecycleOwner.lifecycle.removeObserver(observer)
+            //viewModel.pararTimer() // Seguretat total
+        }
+    }
+    
+    
+    
+    
     // by    cal importar    import androidx.compose.runtime.getValue
     // S03, ATENCIÓ SI FEM SERVIR FLOW, HEM DEL COLLECTASSTATE
     val state by viewModel.uiState.collectAsState() // Observem l'estat

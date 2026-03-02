@@ -84,6 +84,14 @@ class SimonViewmodel : ViewModel() {
         )
     }
 
+    // S04, per tornar del joc pausar pel que sigui
+    fun anarAPausa() {
+        carregarNivell(_uiState.value.currentLevelIndex)
+        _uiState.value = _uiState.value.copy(
+            message = "El nivell ${_uiState.value.currentLevelIndex+1} s'ha interromput \n Prem Start per reiniciar-lo"
+        )
+    }
+
     //S03 ara quan l'usuari clica un color passen moltes coses diferents
     fun onColorClick(clickedColor: GameColor) {
 
