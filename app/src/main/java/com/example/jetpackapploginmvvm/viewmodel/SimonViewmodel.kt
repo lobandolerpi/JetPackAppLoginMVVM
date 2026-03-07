@@ -1,5 +1,21 @@
 package com.example.jetpackapploginmvvm.viewmodel
 
+import android.Manifest
+import android.app.Application
+import android.content.Context
+import android.hardware.Sensor
+import android.hardware.SensorManager
+import android.location.LocationManager
+import android.media.AudioDeviceInfo
+import android.media.AudioManager
+import android.net.wifi.ScanResult
+import android.net.wifi.WifiAvailableChannel
+import android.net.wifi.WifiManager
+import android.os.Build
+import android.util.Log
+import androidx.annotation.RequiresApi
+import androidx.annotation.RequiresPermission
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.jetpackapploginmvvm.model.GameColor
@@ -45,8 +61,8 @@ data class SimonUiState(
 
 )
 
-
-class SimonViewmodel : ViewModel() {
+// S05A Canviar // class SimonViewmodel : ViewModel() // per :
+class SimonViewmodel (application: Application): AndroidViewModel(application) {
     // S03 estats de SimonUiState amb Flow perquè és d elògica (veure apunts)
     private val _uiState = MutableStateFlow(SimonUiState())
     val uiState = _uiState.asStateFlow()
@@ -57,8 +73,54 @@ class SimonViewmodel : ViewModel() {
         _uiState.value = _uiState.value.copy(
             message = "Pitja Start per començar"
         )
+        // S05A Afegim crida al nou mètode de crida
+        llistarSensorsDisponibles()
+        llistarServeisLocalitzacio()
+        llistarServeisAudio()
     }
-    
+
+    //S05A Exploració de sensors sense lambdes
+    private fun llistarSensorsDisponibles() {
+        // a) Obtenim el gestor de sensors fent servir el context segur de l'Application
+        val sensorManager = getApplication<Application>().getSystemService(Context.SENSOR_SERVICE) as SensorManager
+            // a.1  getApplication<Application>() -> Des del nostre ViewModel que ara rep l'app, agafem el contenidor global de tota la nostra app.
+            // a.2  .getSystemService(...) -> Utilitzem el registre d'aquesta app per demanar un SERVEI al Sistema Operatiu.
+            // a.3: Context.SENSOR_SERVICE -> Quin servei volem? El departament de Sensors.
+            // a.4: as SensorManager -> Com que el sistema ens retorna un 'servei genèric', fem un cast per dir-li a Kotlin: 'Tracta això com el que és, un gestor de sensors'.
+
+        // b) Demanem al gestor una llista amb TOTS (TYPE_ALL) els sensors del dispositiu
+        val llistaSensors: List<Sensor> = sensorManager.getSensorList(Sensor.TYPE_ALL)
+
+        // c) Imprimim la informació al Logcat per analitzar-la a classe
+        Log.d("SENSORS_SIMON", "--- INICI LLISTAT DE SENSORS ---")
+        Log.d("SENSORS_SIMON", "S'han trobat ${llistaSensors.size} sensors al dispositiu.")
+        for (sensor in llistaSensors) {
+            Log.d("SENSORS_SIMON", "Sensor: ${sensor.name} | Tipus: ${sensor.stringType} | Fabricant: ${sensor.vendor}")
+        }
+        Log.d("SENSORS_SIMON", "--- FI LLISTAT DE SENSORS ---")
+    }
+
+    private fun llistarServeisLocalitzacio() {
+        val locatManager = getApplication<Application>().getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        val llistaLocation: List<String> = locatManager.getProviders(true)
+        Log.d("LOCALITZADORS_SIMON", "--- INICI LLISTAT DE PROVEIDORS ---")
+        Log.d("LOCALITZADORS_SIMON", "S'han trobat ${llistaLocation.size} sensors al dispositiu.")
+        for (provider in llistaLocation) {
+            Log.d("LOCALITZADORS_SIMON", "Proveidor: ${provider} ")
+        }
+        Log.d("LOCALITZADORS_SIMON", "--- FI LLISTAT DE PROVEIDORS DE LOCALITZACIÓ ---")
+    }
+
+
+    private fun llistarServeisAudio() {
+        // EXERCICI LLISTAR EL VOLUM ACTUAL DE LES TRUCADES, ALARMES i MÚSICA
+        //   val audioManager = getApplication<Application>().getSystemService( ???? ) as ?__?
+        //   val arrayAudio: ?**?  =  audioManager.getStreamVolume(?__?.STREAM_?--?)
+    }
+
+
+
+
     // S04, ARA carregar el nivell actualitza moltes coses
     private fun carregarNivell(index: Int) {
         if (index >= GAME_LEVELS.size){
