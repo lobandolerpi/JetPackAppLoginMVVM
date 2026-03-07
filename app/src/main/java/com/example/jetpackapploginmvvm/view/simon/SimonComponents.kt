@@ -34,7 +34,7 @@ fun SimonButton(
     val baseColor = buttonState.color.color
     val backGroundColor =
         if ( buttonState.isLit ) {
-            val increasedBright = 0.4f
+            val increasedBright = 0.5f
             val maximumBright = 1f
             val baseColor = buttonState.color.color
             baseColor.copy(
@@ -48,7 +48,7 @@ fun SimonButton(
 
     val shadowElevation = if ( buttonState.isLit ) { 12.dp } else { 4.dp }
     val shadowColor = if ( buttonState.isLit ) { baseColor } else { Color.Black }
-    val glowColor = if ( buttonState.isLit ) { baseColor.copy(alpha = 0.15f) } else { Color.Transparent}
+    val glowColor = if ( buttonState.isLit ) { baseColor.copy(alpha = 0.4f) } else { Color.Transparent}
 
     // S03 Lògica d'animació
     // compose calcula els colors intermitjos.
@@ -69,10 +69,6 @@ fun SimonButton(
         animationSpec = tween(200),
         label = "BackGColorAnimation"
     )
-
-
-
-
 
 
     Box(
@@ -118,7 +114,7 @@ fun SimonButton(
                     modifier = Modifier
                         .fillMaxSize(0.4f) // El fem encara  més petit
                         .clip(RoundedCornerShape(32.dp))
-                        .background(Color.White.copy(alpha = 0.3f))
+                        .background(Color.White.copy(alpha = 0.4f))
                         //.clickable(onClick = onClick)
                         .blur(15.dp)
                 )
