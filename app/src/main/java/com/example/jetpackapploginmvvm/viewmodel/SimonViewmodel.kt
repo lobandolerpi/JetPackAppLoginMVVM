@@ -68,6 +68,11 @@ class SimonViewmodel (application: Application): AndroidViewModel(application) {
     val uiState = _uiState.asStateFlow()
     private var timerJob: Job? = null
 
+    // S05 variables per desar sensor i manager
+    private var sensorManagerApp: SensorManager? = null
+    private var accelerometer: Sensor? = null
+    private var ultimTempsSacsejada: Long = 0
+
     init {
         carregarNivell(0)
         _uiState.value = _uiState.value.copy(
@@ -120,6 +125,81 @@ class SimonViewmodel (application: Application): AndroidViewModel(application) {
 
 
 
+    // S05 Creem l'escoltador SENSE lambdes, implementant la interfície directament
+    private val sensorEventListener = object : android.hardware.SensorEventListener {
+
+        // Aquesta funció salta quan la precisió del sensor canvia (no la fem servir ara)
+        override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
+            // El compilador força a definirla.
+            // Pero la nostra app no necessita precissió, una sacsejada és una sacsejada sempre.
+        }
+
+        // Aquesta funció salta cada vegada que l'acceleròmetre detecta un canvi
+        override fun onSensorChanged(event: android.hardware.SensorEvent?) {
+            if (event != null) {
+                // Obtenim l'acceleració en els 3 eixos (X, Y, Z)
+                val x = event.values[0]
+                val y = event.values[1]
+                val z = event.values[2]
+
+                // Dividim per la gravetat terrestre per saber quantes "G" de força estem aplicant
+                val gX = x / SensorManager.GRAVITY_EARTH
+                val gY = y / SensorManager.GRAVITY_EARTH
+                val gZ = z / SensorManager.GRAVITY_EARTH
+
+                // Calculem la força G total (magnitud del vector)
+                val gForce = Math.sqrt((gX * gX + gY * gY + gZ * gZ).toDouble()).toFloat()
+                //if (gForce > 1.001f) {
+                //    Log.d("SENSOR:", "x: ${x}, y: ${y} , z: ${z}, g: ${gForce}")
+                //}
+
+                // Si la força G és superior a 1.5 (una sacsejada forta)
+                if (gForce > 1.5f) {
+                    val tempsActual = System.currentTimeMillis()
+                    Log.d("SENSOR:", "x: ${x}, y: ${y} , z: ${z}, g: ${gForce}")
+                    Log.d("SENSOR:", "tempsActual: ${tempsActual}, ultimTempsSacsejada: ${ultimTempsSacsejada}")
+                    Log.d("SENSOR:", "diff temps: ${tempsActual - ultimTempsSacsejada}")
+                    Log.d("SENSOR:", "Game started?: ${_uiState.value.isGameStarted}")
+                    // Només fem cas si han passat almenys 2 segons (2000 ms) des de l'última sacsejada
+                    if (tempsActual - ultimTempsSacsejada > 2000) {
+                        //if (_uiState.value.isGameStarted) {
+                            ultimTempsSacsejada = tempsActual
+                            Log.d("SENSORS_SIMON", "SACSEJADA DETECTADA! Força G: $gForce. Reiniciant nivell...")
+                            carregarNivell(_uiState.value.currentLevelIndex)
+                            _uiState.value = _uiState.value.copy(
+                                timerValueRemaining = tempsMax(),
+                            )
+                            novaRondaMsgSacsejada()
+                        //}
+                    }
+                }
+            }
+        }
+    }
+    // S05 Funciño per encendre el sensor
+    fun activarSensor() {
+        if (sensorManagerApp == null) {
+            sensorManagerApp = getApplication<Application>().getSystemService(Context.SENSOR_SERVICE) as SensorManager
+            accelerometer = sensorManagerApp?.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+        }
+
+        // Registrem el nostre escoltador. SENSOR_DELAY_UI és una velocitat pensada per jocs/interfícies
+        accelerometer?.let {
+            sensorManagerApp?.registerListener(sensorEventListener, it, SensorManager.SENSOR_DELAY_UI)
+            Log.d("SENSORS_SIMON", "Sensor activat: Escoltant moviments.")
+        }
+    }
+    // S05 Funciño per apagar el sensor i no gastar bateria
+    fun desactivarSensor() {
+        // Parem d'escoltar per estalviar bateria
+        sensorManagerApp?.unregisterListener(sensorEventListener)
+        Log.d("SENSORS_SIMON", "Sensor desactivat: Estalviant bateria.")
+    }
+
+
+
+
+
 
     // S04, ARA carregar el nivell actualitza moltes coses
     private fun carregarNivell(index: Int) {
@@ -162,6 +242,11 @@ class SimonViewmodel (application: Application): AndroidViewModel(application) {
         )
     }
 
+    fun tempsMax() : Int{
+        val config = GAME_LEVELS[_uiState.value.currentLevelIndex]
+        val numClicks = (uiState.value.maxRounds)*(uiState.value.maxRounds +1)/2
+        return ( numClicks.toDouble() * config.multiplicadorTemps ).toInt()
+    }
     fun pararTimer() {
         timerJob?.cancel()
     }
@@ -216,12 +301,12 @@ class SimonViewmodel (application: Application): AndroidViewModel(application) {
                              carregarNivell(0)
                              _uiState.value = _uiState.value.copy(
                                  message = "ENHORABONA! \nHas superat TOT EL JOC",
-                                 timerValueRemaining = _uiState.value.maxRounds*3,
+                                 timerValueRemaining = tempsMax(),
                              )
                          } else {
                              carregarNivell(uiStV.currentLevelIndex +1)
                              _uiState.value = _uiState.value.copy(
-                                 timerValueRemaining = _uiState.value.maxRounds*3,
+                                 timerValueRemaining = tempsMax(),
                              )
                          }
                      } else {
@@ -291,7 +376,7 @@ class SimonViewmodel (application: Application): AndroidViewModel(application) {
         )
         // Si el timerValue ja és 0 (perquè han perdut), el tornem a posar al màxim del nivell
         if (_uiState.value.timerValueRemaining <= 0) {
-            _uiState.value = _uiState.value.copy(timerValueRemaining = _uiState.value.maxRounds*3)
+            _uiState.value = _uiState.value.copy(timerValueRemaining = tempsMax() )
         }
 
         novaRonda()
@@ -309,12 +394,33 @@ class SimonViewmodel (application: Application): AndroidViewModel(application) {
             colorSequenceCPU = newColorSequenceCPU, // actualitzo la seqüència
             isUserTurn = false, // comença la CPU mostrant els colors
             message = "Memoritza la seqüència de colors...",
-            userTurnIndex = 0 // L'usuari comença des del principi
+            userTurnIndex = 0, // L'usuari comença des del principi
+            isGameStarted = true,
         )
         pararTimer()
         
         // Llancem una corutina asincrona per reproduir seqüència
         viewModelScope.launch { 
+            reproduirSequencia(newColorSequenceCPU)
+        }
+    }
+
+    private fun novaRondaMsgSacsejada() {
+        // Random a una colecció directament agafa un element a l'atzar
+        val randomColor = _uiState.value.buttons.random().color
+        val newColorSequenceCPU = _uiState.value.colorSequenceCPU + randomColor
+
+        _uiState.value = _uiState.value.copy(
+            colorSequenceCPU = newColorSequenceCPU, // actualitzo la seqüència
+            isUserTurn = false, // comença la CPU mostrant els colors
+            message = " Sacsejada: Reiniciant lvl ${_uiState.value.currentLevelIndex + 1}\n Memoritza la seqüència de colors...",
+            userTurnIndex = 0, // L'usuari comença des del principi
+            isGameStarted = true,
+        )
+        pararTimer()
+
+        // Llancem una corutina asincrona per reproduir seqüència
+        viewModelScope.launch {
             reproduirSequencia(newColorSequenceCPU)
         }
     }
