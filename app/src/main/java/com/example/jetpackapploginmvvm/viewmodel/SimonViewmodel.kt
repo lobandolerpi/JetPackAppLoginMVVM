@@ -185,7 +185,12 @@ class SimonViewmodel (application: Application): AndroidViewModel(application) {
 
         // Registrem el nostre escoltador. SENSOR_DELAY_UI és una velocitat pensada per jocs/interfícies
         accelerometer?.let {
-            sensorManagerApp?.registerListener(sensorEventListener, it, SensorManager.SENSOR_DELAY_UI)
+            sensorManagerApp?.registerListener(
+                sensorEventListener, // qui escolta
+                it, // a qui s'escolta
+                SensorManager.SENSOR_DELAY_UI // cada quant s'escolta.
+            )
+
             Log.d("SENSORS_SIMON", "Sensor activat: Escoltant moviments.")
         }
     }
