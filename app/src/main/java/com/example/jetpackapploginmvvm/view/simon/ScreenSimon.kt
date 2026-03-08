@@ -70,12 +70,14 @@ fun ScreenSimon(
                 Lifecycle.Event.ON_CREATE -> Log.d(TAG, "1. ON_CREATE: Pantalla creada")
                 Lifecycle.Event.ON_START -> Log.d(TAG, "2. ON_START: Pantalla visible")
                 Lifecycle.Event.ON_RESUME -> {
+                    viewModel.activarSensor()
                     Log.d(TAG, "3. ON_RESUME: L'usuari ja pot interactuar")
                     // Podríem reprendre el timer aquí si volguéssim ser més permissius
                 }
                 Lifecycle.Event.ON_PAUSE -> {
                     Log.d(TAG, "4. ON_PAUSE: L'usuari perd el focus (pausa el joc!)")
                     viewModel.anarAPausa()
+                    viewModel.desactivarSensor()
                 }
                 Lifecycle.Event.ON_STOP -> Log.d(TAG, "5. ON_STOP: Ja no és visible")
                 Lifecycle.Event.ON_DESTROY -> Log.d(TAG, "6. ON_DESTROY: L'activitat es destrueix")
@@ -89,6 +91,7 @@ fun ScreenSimon(
             // Important: el DisposableEffect de Compose gestiona el "Leave" del component
             Log.w(TAG, "COMPOSE ON_DISPOSE: Neteja de l'observador")
             lifecycleOwner.lifecycle.removeObserver(observer)
+            viewModel.desactivarSensor()
             //viewModel.pararTimer() // Seguretat total
         }
     }
