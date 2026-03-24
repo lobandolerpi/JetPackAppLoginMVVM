@@ -118,9 +118,17 @@ class SimonViewmodel (application: Application): AndroidViewModel(application) {
 
 
     private fun llistarServeisAudio() {
+        val audioManager = getApplication<Application>().getSystemService(Context.AUDIO_SERVICE) as AudioManager
         // EXERCICI LLISTAR EL VOLUM ACTUAL DE LES TRUCADES, ALARMES i MÚSICA
         //   val audioManager = getApplication<Application>().getSystemService( ???? ) as ?__?
         //   val arrayAudio: ?**?  =  audioManager.getStreamVolume(?__?.STREAM_?--?)
+        val volumLlamadas: Int = audioManager.getStreamVolume(AudioManager.STREAM_RING)
+        val volumAlarma: Int = audioManager.getStreamVolume(AudioManager.STREAM_ALARM)
+        val volumMusica: Int = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
+        Log.d("VOLUMEN", "Volumen Llamadas ${volumLlamadas}")
+        Log.d("VOLUMEN", "Volumen Alarma ${volumAlarma}")
+        Log.d("VOLUMEN", "Volumen Musica ${volumMusica}")
+
     }
 
 
@@ -149,12 +157,12 @@ class SimonViewmodel (application: Application): AndroidViewModel(application) {
 
                 // Calculem la força G total (magnitud del vector)
                 val gForce = Math.sqrt((gX * gX + gY * gY + gZ * gZ).toDouble()).toFloat()
-                //if (gForce > 1.001f) {
-                //    Log.d("SENSOR:", "x: ${x}, y: ${y} , z: ${z}, g: ${gForce}")
-                //}
+                if (gForce > 0.5f) {
+                    Log.d("SENSOR:", "x: ${x}, y: ${y} , z: ${z}, g: ${gForce}")
+                }
 
                 // Si la força G és superior a 1.5 (una sacsejada forta)
-                if (gForce > 1.5f) {
+                if (gForce > 1.2f) {
                     val tempsActual = System.currentTimeMillis()
                     Log.d("SENSOR:", "x: ${x}, y: ${y} , z: ${z}, g: ${gForce}")
                     Log.d("SENSOR:", "tempsActual: ${tempsActual}, ultimTempsSacsejada: ${ultimTempsSacsejada}")
