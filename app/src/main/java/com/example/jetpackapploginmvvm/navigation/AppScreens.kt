@@ -19,8 +19,8 @@ sealed class AppScreens (val route: String ){
     data object Simon : AppScreens( "simon_screen")
     // Aquesta pantalla no canvia cap dada, per tant no té paràmetres.
 
-    object AhorcadoScreen : AppScreens("ahorcado_screen")
-    object GameOverScreen : AppScreens("game_over_screen/{result}") {
+    data object AhorcadoScreen : AppScreens("ahorcado_screen")
+    data object GameOverScreen : AppScreens("game_over_screen/{result}") {
         fun createRoute(result: String) = "game_over_screen/$result"
     }
 

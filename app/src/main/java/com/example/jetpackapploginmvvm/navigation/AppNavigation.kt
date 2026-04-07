@@ -135,7 +135,7 @@ fun AppNavigation(
             ScreenAhorcado(navController, ahorcadoViewModel)
         }
 
-        composable(route = "game_over_screen/{result}") { backStackEntry ->
+        composable(route = AppScreens.GameOverScreen.route) { backStackEntry ->
             val resultado = backStackEntry.arguments?.getString("result") ?: "Fin"
             ScreenGameOver(navController, resultado)
         }
