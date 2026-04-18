@@ -8,6 +8,9 @@ import android.hardware.SensorManager
 import android.location.LocationManager
 import android.media.AudioDeviceInfo
 import android.media.AudioManager
+import android.media.AudioAttributes
+import android.media.MediaPlayer
+import android.media.SoundPool
 import android.net.wifi.ScanResult
 import android.net.wifi.WifiAvailableChannel
 import android.net.wifi.WifiManager
@@ -18,6 +21,7 @@ import androidx.annotation.RequiresPermission
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.jetpackapploginmvvm.R
 import com.example.jetpackapploginmvvm.model.GameColor
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -73,6 +77,11 @@ class SimonViewmodel (application: Application): AndroidViewModel(application) {
     private var accelerometer: Sensor? = null
     private var ultimTempsSacsejada: Long = 0
 
+    // S06: Variables de control multimèdia
+    private var mediaPlayer: MediaPlayer? = null // Sons llargs, es carreguen des de disc.
+    private var soundPool: SoundPool? = null // Sons curts, es carreguen a RAM, s'executen sense latència.
+    private val soundMap = mutableMapOf<Int, Int>() // Relaciona el GameColor.id amb el So
+
     init {
         carregarNivell(0)
         _uiState.value = _uiState.value.copy(
@@ -82,7 +91,78 @@ class SimonViewmodel (application: Application): AndroidViewModel(application) {
         llistarSensorsDisponibles()
         llistarServeisLocalitzacio()
         llistarServeisAudio()
+        inicialitzarAudio()
     }
+
+    //S06 Prepara els fitxers i canals d'audio per que estiguin llestos per la app.
+    private fun inicialitzarAudio() {
+        val context = getApplication<Application>()
+        // Utilitzem el Context de l'aplicació per accedir als recursos del sistema
+        // i del paquet (fitxers, bases de dades, carpetes 'res/raw', etc.).
+
+        // A. Música de fons amb MediaPlayer
+        mediaPlayer = MediaPlayer.create(
+            context,
+            R.raw.music_background // ATENCIÓ
+            // Importa  import com.example.jetpackapploginmvvm.R
+            // El de la teva app, no cap altre predefinit.
+            // el fitxer està a RAW del directori de la teva APP!
+        )
+        mediaPlayer?.isLooping = true // Volem que soni en bucle
+
+
+        // B. Efectes de so amb SoundPool
+        // Configurem les característiques de l'àudio (com s'ha d'escoltar)
+        val audioAttributes = AudioAttributes.Builder()
+            // Indiquem el propòsit: USAGE_GAME prioritza la baixa latència (ideal per a jocs)
+            .setUsage(AudioAttributes.USAGE_GAME)
+            // Tipus de contingut: SONIFICATION s'usa per a efectes de so curts (clics, explosions, etc.)
+            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+            .build()
+
+        // Construïm la instància de SoundPool
+        soundPool = SoundPool.Builder()
+            .setMaxStreams(4) // Permetem fins a 4 sons trepitjant-se (polifonia)
+            // Assignem els atributs definits anteriorment per optimitzar el rendiment de l'àudio
+            .setAudioAttributes(audioAttributes)
+            .build()
+
+
+        // C. Carreguem els 9 sons i els mapegem a la ID del GameColor
+        // Fem servir let/run o simplement load(). Si un so falta, es desa com 0.
+        soundPool?.let { sp ->
+            soundMap[1] = sp.load(context, R.raw.s01, 1)
+            soundMap[2] = sp.load(context, R.raw.s02, 1)
+            soundMap[3] = sp.load(context, R.raw.s03, 1)
+            soundMap[4] = sp.load(context, R.raw.s04, 1)
+            soundMap[5] = sp.load(context, R.raw.s05, 1)
+            soundMap[6] = sp.load(context, R.raw.s06, 1)
+            soundMap[7] = sp.load(context, R.raw.s07, 1)
+            soundMap[8] = sp.load(context, R.raw.s08, 1)
+            soundMap[9] = sp.load(context, R.raw.s09, 1)
+        }
+    }
+
+    // S06 Funció per disparar un so concret
+    private fun reproduirSoColor(colorId: Int) {
+        val soundId = soundMap[colorId]
+        if (soundId != null && soundId != 0) {
+            // paràmetres: id, volumEsq, volumDret, prioritat, loop(0=no), velocitat(1f=normal)
+            soundPool?.play(soundId, 1f, 1f, 0, 0, 1f)
+        }
+    }
+
+
+    // S06 Funció per gestionar la música
+    private fun controlarMusicaFons(play: Boolean) {
+        if (play) {
+            if (mediaPlayer?.isPlaying == false) mediaPlayer?.start()
+        } else {
+            if (mediaPlayer?.isPlaying == true) mediaPlayer?.pause()
+        }
+    }
+
+
 
     //S05A Exploració de sensors sense lambdes
     private fun llistarSensorsDisponibles() {
@@ -243,6 +323,9 @@ class SimonViewmodel (application: Application): AndroidViewModel(application) {
             userTurnIndex = 0,
             buttons = GameColor.getColorsForLevel(config.cols*config.rows).map { ButtonState(it) },
         )
+        // S06 Apago la música pq apago el joc.
+        controlarMusicaFons(false)
+
         pararTimer()
     }
 
@@ -346,18 +429,32 @@ class SimonViewmodel (application: Application): AndroidViewModel(application) {
                      isGameStarted = false,
                      message = "Has fallat! Prem Start per reintentar."
                  )
+                 // S06 Apago la música pq apago el joc.
+                 controlarMusicaFons(false)
              }
          }
     }
-    
+
+    // S06 Actualitzo la funció afegint els sons aquí.
+    // AIXÍ M'ASSEGURO QUE L'ESTAT D'IL.LUMINAR I EL DEL SO
+    // ES CANVIEN SIMULTÂNEAMENT I VAN COORDINATS
     // S03 iluminar el botó i apagar-lo
     private fun iluminarBoto(color: GameColor, doEncedre: Boolean){
         val newButtons = _uiState.value.buttons.map {
             // Aquest if ha de tornar a cada iteracio "it" un objecte del tipus 
             // que hi ha dins de la colecció buttons (per tant buttonState)
-            if (it.color == color) it.copy(isLit = doEncedre) else it
+            if (it.color == color) {
+                if (doEncedre){ // S06 Només si estic encenent.
+                    // reprodueixo el so del color corresponent.
+                    reproduirSoColor(color.id)
+                }
+                // S06 ATENCIÓ AQUEST IF HA DE RETORNAR EL BOTÓ
+                // AIXÍ QUE AQUESTA LÍNIA HA DE SER LA ÚLTIMA.
+                it.copy(isLit = doEncedre)
+            } else it
             // si es el color que vull canviar, actualitzo l'estat
             // en cas contrari no faig res.
+
         }
         _uiState.value = _uiState.value.copy(
             buttons = newButtons
@@ -380,6 +477,8 @@ class SimonViewmodel (application: Application): AndroidViewModel(application) {
         )
         iniciarTimer()
     }
+
+
     // S03 01 Ara he d'iniciar ronda
     fun startGame() {
         _uiState.value = _uiState.value.copy(
@@ -387,6 +486,9 @@ class SimonViewmodel (application: Application): AndroidViewModel(application) {
             colorSequenceCPU = emptyList(),
             message = "Repeteix la seqüència!"
         )
+        // S06 Encenc la música pq encenc el joc.
+        controlarMusicaFons(true)
+
         // Si el timerValue ja és 0 (perquè han perdut), el tornem a posar al màxim del nivell
         if (_uiState.value.timerValueRemaining <= 0) {
             _uiState.value = _uiState.value.copy(timerValueRemaining = tempsMax() )
@@ -410,6 +512,8 @@ class SimonViewmodel (application: Application): AndroidViewModel(application) {
             userTurnIndex = 0, // L'usuari comença des del principi
             isGameStarted = true,
         )
+        // S06 Encenc la música pq encenc el joc.
+        controlarMusicaFons(true)
         pararTimer()
         
         // Llancem una corutina asincrona per reproduir seqüència
@@ -430,12 +534,29 @@ class SimonViewmodel (application: Application): AndroidViewModel(application) {
             userTurnIndex = 0, // L'usuari comença des del principi
             isGameStarted = true,
         )
+        // S06 Encenc la música pq encenc el joc.
+        controlarMusicaFons(true)
         pararTimer()
 
         // Llancem una corutina asincrona per reproduir seqüència
         viewModelScope.launch {
             reproduirSequencia(newColorSequenceCPU)
         }
+    }
+
+    //S06 Sobreescribim com s'esborra aquest viewmodel
+    // per tal que alliberem els recursos del so
+    // i altres pantalles o aplicacions els puguin fer servir
+    // i a més no gastem RAM o altres recursos innecessàriament.
+    override fun onCleared() {
+        // Aturem i alliberem la memòria a l'S.O.
+        // SEMPRE, SEMPRE, SEMPRE que activem coses que gasten recursos
+        // cal alliberar-les després
+        mediaPlayer?.release()
+        mediaPlayer = null
+
+        soundPool?.release()
+        soundPool = null
     }
 
 }
