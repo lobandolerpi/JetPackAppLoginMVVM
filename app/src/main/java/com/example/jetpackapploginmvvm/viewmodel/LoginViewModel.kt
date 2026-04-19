@@ -3,13 +3,16 @@ package com.example.jetpackapploginmvvm.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.jetpackapploginmvvm.model.User
+import com.example.jetpackapploginmvvm.model.UserDao
 import com.example.jetpackapploginmvvm.model.UserRepository
 import com.example.jetpackapploginmvvm.navigation.AppScreens
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 // Estat inicial per la UI de Login.
 // Els tres continguts en blanc.
@@ -47,36 +50,45 @@ class LoginViewModel : ViewModel() {
         _uiState.value = _uiState.value.copy(password = input, message = "", errorMsg = "")
     }
 
-    fun onRegisterClick(){
+    fun onRegisterClick(dao: UserDao) {// El viewmodel no té accés al DAO
+        // li hem de passar com a atribut.
         val current = _uiState.value
-        if(current.username.isNotBlank() && current.password.isNotBlank()){
-            //
-            val isSuccess = UserRepository.addUser(User(current.username, current.password))
 
-            if(isSuccess) {
-                _uiState.value = current.copy(message = "Usuari registrat correctament !!", username = "", password ="", errorMsg = "")
-            } else {
-                _uiState.value = current.copy(errorMsg = "ERROR: L'usuari ja existeix !!", message = "")
+        viewModelScope.launch(Dispatchers.IO) { // Anem al fil secundari
+            val newUser = User(username = current.username, password = current.password)
+            val isAdded = UserRepository.addUser(newUser, dao)
+            // La BdD ja gestiona i torna true o false en cas d'èxit.
+
+            // Tornem al fil principal per actualitzar la UI
+            withContext(Dispatchers.Main) {
+                if (isAdded) {
+                    _uiState.value = current.copy(errorMsg = "Usuari registrat correctament!")
+                } else {
+                    _uiState.value = current.copy(errorMsg = "ERROR: Aquest usuari ja existeix.")
+                }
             }
         }
     }
 
-    fun onLoginClick(){
+
+    fun onLoginClick(dao: UserDao){ // El viewmodel no té accés al DAO
+        // li hem de passar com a atribut.
         val current = _uiState.value
-        // users  passa a ser UserRepository (un singleton)
-        val storedUser = UserRepository.getUser(current.username)
-        if (storedUser == null) {
-            _uiState.value = current.copy(errorMsg = "ERROR: L'usuari no existeix !!", message = "")
-        } else {
-            if( storedUser.password == current.password) {
-                // ARA, per canviar de pantalla he de crear un event (launch)
-                // que envii l'ordre de navegar mitjançant el canal adequat.
-                viewModelScope.launch {
+
+        viewModelScope.launch(context = Dispatchers.IO) { // Anem al fil secundari de la "cuina"
+            // Fem la consulta a la base de dades des del fil secundari
+            val storedUser = UserRepository.getUser(username = current.username, dao = dao)
+
+            // Tornem al fil principal del "cambrer" per actualitzar les dades d'estat.
+            withContext(context = Dispatchers.Main) {
+                if (storedUser == null) {
+                    _uiState.value = current.copy(errorMsg = "ERROR: L'usuari no existeix !!")
+                } else if (storedUser.password == current.password) {
                     _navigationChannel.send(AppScreens.Welcome.createRoute(current.username))
-                    _uiState.value = LoginUiState() // Netejo camps
+                    _uiState.value = LoginUiState() // Netejar els estats.
+                } else {
+                    _uiState.value = current.copy(errorMsg = "ERROR: Credencials invàlides !!")
                 }
-            } else {
-                _uiState.value = current.copy(message = "", errorMsg =  "ERROR: Credencials invàlides !!")
             }
         }
     }
