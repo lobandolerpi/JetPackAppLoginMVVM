@@ -5,7 +5,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavHostController
 import androidx.navigation.NavOptionsBuilder
 import androidx.navigation.NavType
 import androidx.navigation.PopUpToBuilder
@@ -17,6 +16,8 @@ import com.example.jetpackapploginmvvm.view.ScreenLogin
 import com.example.jetpackapploginmvvm.view.ScreenWelcome
 import com.example.jetpackapploginmvvm.view.simon.ScreenSimon
 import com.example.jetpackapploginmvvm.viewmodel.LoginViewModel
+import androidx.compose.ui.platform.LocalContext
+import com.example.jetpackapploginmvvm.model.AppDatabase
 
 // FUNCIONS AUXILIARS FIRA DE LA UI
 
@@ -74,6 +75,13 @@ fun AppNavigation(
             // by es un operador que delega la responsabilitat de gestionar
             // com s'assigna l'objecte (en aquest cas els valors de l'estat)
 
+
+            // S08 Obtenim el Context i el DAO aquí mateix
+            val context = LocalContext.current
+            val dao = AppDatabase.getDatabase(context).userDao()
+
+
+
             // Escoltem ordres de navegació
             LaunchedEffect(key1 = true) {
                 // Les pot donar el viewModel (en aquest cas LoginViewModel
@@ -85,8 +93,12 @@ fun AppNavigation(
                 state = state,
                 onUsernameChange = viewModel::onUsernameChange,
                 onPasswordChange = viewModel::onPasswordChange,
-                onRegisterClick = viewModel::onRegisterClick,
-                onLoginClick = viewModel::onLoginClick,
+                // S08 Com que té paràmetres, no puc pasar la
+                // referència a la funció [El click no té el paràmetre]
+                // he de pasar l'execució de la funció amb les dades concretes
+                // canviem :: per . i ho enbolcallem en {} per crear una lambda
+                onRegisterClick = { viewModel.onRegisterClick(dao) },
+                onLoginClick = { viewModel.onLoginClick(dao) },
                 onCloseClick = onCloseApp
             )
         }

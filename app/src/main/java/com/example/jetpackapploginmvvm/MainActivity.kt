@@ -4,19 +4,25 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import com.example.jetpackapploginmvvm.navigation.AppNavigation
 import com.example.jetpackapploginmvvm.ui.theme.AppMVVMTheme
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import com.example.jetpackapploginmvvm.model.AppDatabase
+import com.example.jetpackapploginmvvm.model.UserRepository
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        // S08, necessitem inicialitzar la base de dades
+        // i configurar carregar usuaris inicials si no hi son.
+        val db = AppDatabase.getDatabase(applicationContext)
+        lifecycleScope.launch(Dispatchers.IO) {
+            UserRepository.prepararDadesDeProva(db.userDao())
+        }
         setContent {
             AppMVVMTheme {
                 AppNavigation(

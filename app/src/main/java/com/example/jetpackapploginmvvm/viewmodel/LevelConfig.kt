@@ -13,7 +13,7 @@ data class LevelConfig(
 // La nostra "Taula de Dificultat"
 val GAME_LEVELS = listOf(
     LevelConfig(1, 2, 2, 3, 500L, 250L, 8.0),  // Nivell 1: 4 botons, 5 rondes
-    LevelConfig(2, 3, 2, 3, 400L, 225L, 3.0), // Nivell 2: 6 botons, 10 rondes
-    LevelConfig(3, 3, 2, 3, 300L, 200L, 1.5), // Nivell 3: 6 botons, 15 rondes
-    LevelConfig(4, 3, 3, 20, 200L, 100L, 1.35)  // Nivell 4: 9 botons, 15 rondes
+    LevelConfig(2, 3, 2, 5, 400L, 225L, 3.0), // Nivell 2: 6 botons, 10 rondes
+    LevelConfig(3, 3, 2, 8, 300L, 200L, 1.5), // Nivell 3: 6 botons, 15 rondes
+    LevelConfig(4, 3, 3, 12, 200L, 100L, 1.35)  // Nivell 4: 9 botons, 15 rondes
 )
