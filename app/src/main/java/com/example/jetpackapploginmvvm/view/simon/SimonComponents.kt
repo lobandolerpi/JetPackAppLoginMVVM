@@ -1,6 +1,5 @@
 package com.example.jetpackapploginmvvm.view.simon
 
-import android.R
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -19,9 +18,6 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.text.style.LineHeightStyle
-import androidx.compose.ui.unit.dp
-import com.example.jetpackapploginmvvm.model.GameColor
 import com.example.jetpackapploginmvvm.viewmodel.ButtonState
 
 @Composable

@@ -1,25 +1,16 @@
 package com.example.jetpackapploginmvvm.viewmodel
 
-import android.Manifest
 import android.app.Application
 import android.content.Context
 import android.hardware.Sensor
 import android.hardware.SensorManager
 import android.location.LocationManager
-import android.media.AudioDeviceInfo
 import android.media.AudioManager
 import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.media.SoundPool
-import android.net.wifi.ScanResult
-import android.net.wifi.WifiAvailableChannel
-import android.net.wifi.WifiManager
-import android.os.Build
 import android.util.Log
-import androidx.annotation.RequiresApi
-import androidx.annotation.RequiresPermission
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.jetpackapploginmvvm.R
 import com.example.jetpackapploginmvvm.model.GameColor

@@ -59,6 +59,7 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.navigation.compose)
+    implementation(libs.ads.mobile.sdk)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -75,4 +76,9 @@ dependencies {
 
     // This will now work without "unresolved reference"
     ksp("androidx.room:room-compiler:$room_version")
+
+    // Retrofit (per fer les trucades de xarxa)
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    // Gson Converter (per traduir el JSON automàticament)
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
 }

@@ -10,7 +10,8 @@ composeBom = "2024.10.01"
 lifecycle = "2.8.7"
 navigationCompose = "2.8.0"
 navigationComposeVersion = "2.8.3"
-ksp = "2.0.21-1.0.27"  # Match your Kotlin version exactly
+ksp = "2.0.21-1.0.27"
+adsMobileSdk = "0.25.0-beta01"  # Match your Kotlin version exactly
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -32,6 +33,7 @@ androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecyc
 androidx-lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycle" }
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose"}
 navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationComposeVersion" }
+ads-mobile-sdk = { group = "com.google.android.libraries.ads.mobile.sdk", name = "ads-mobile-sdk", version.ref = "adsMobileSdk" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

@@ -18,6 +18,7 @@ import com.example.jetpackapploginmvvm.view.simon.ScreenSimon
 import com.example.jetpackapploginmvvm.viewmodel.LoginViewModel
 import androidx.compose.ui.platform.LocalContext
 import com.example.jetpackapploginmvvm.model.AppDatabase
+import com.example.jetpackapploginmvvm.viewmodel.WelcomeViewModel
 
 // FUNCIONS AUXILIARS FIRA DE LA UI
 
@@ -108,23 +109,31 @@ fun AppNavigation(
         // RUTA 2 : WELCOME
         composable(
             route = AppScreens.Welcome.route,
-            arguments = listOf(navArgument("username", :: configurarArgUsername))
-        ){
-            // Alerta  -> !!!
-            backStackEntry ->
-            // backStackEntry és un paràmetre de composable,
-            // en concret composable( route, arguments, (backStackEntry) -> {Lambda} )
-            val username = backStackEntry.arguments?.getString("username") ?: "Desconegut"
+            arguments = listOf(navArgument("username") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val username = backStackEntry.arguments?.getString("username") ?: ""
 
-            // Welcome no té estats, però si username com a paràmetre
+            // Obtenim el nou ViewModel
+            val welcomeVM: WelcomeViewModel = viewModel()
+
+
             ScreenWelcome(
-                msgWelcome = "Hola, $username",
-                onLogoutClick = ::ferLogout,
-                onCloseClick = onCloseApp,
-                // NOU EVENT: Quan clickem jugar!
-                onStartGame = ::anarASimon
+                username = username,
+                ranking = welcomeVM.rankingMundial,
+                isLoading = welcomeVM.estaCarregant,
+                onStartGame = {
+                    navController.navigate(AppScreens.Simon.route)
+                },
+                onLogoutClick = {
+                    // Torna al Login i esborra l'historial perquè no puguin tornar enrere
+                    navController.navigate(AppScreens.Login.route) {
+                        popUpTo(AppScreens.Login.route) { inclusive = true }
+                    }
+                },
+                onCloseClick = onCloseApp
             )
         }
+
 
         // NOVA RUTA 3 : La pantalla del Simon
         composable (route = AppScreens.Simon.route){
