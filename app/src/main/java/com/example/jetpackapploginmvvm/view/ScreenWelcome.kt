@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
@@ -12,35 +11,64 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.jetpackapploginmvvm.viewmodel.LoginUiState
+import com.example.jetpackapploginmvvm.model.api.RemoteUser
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.AlertDialog
 
 // COM PINTO LA PANTALLA?
+
 @Composable
 fun ScreenWelcome(
-    msgWelcome: String,
+    username: String,
+    ranking: List<RemoteUser>,
+    isLoading: Boolean,
+    mostrarDialogError: Boolean,
+    missatgeError: String,
+    onDismissDialog: () -> Unit,
     onLogoutClick: () -> Unit,
     onCloseClick: () -> Unit,
-    onStartGame:() -> Unit, // Ara aquesta pantalla pot executar el joc
-){
+    onStartGame:() -> Unit
+) {
     Column (
         modifier = Modifier
             .fillMaxSize().padding(16.dp)
             .background(Color.Yellow),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
-    ) {
+    ){
         Text(
-            text = msgWelcome,
-            color = Color.Yellow,
-            fontSize = 24.sp,
-            modifier = Modifier
-                .background(Color.Black)
-                .padding(16.dp)
-                .fillMaxWidth()
+            text = "Hola, $username!",
+            fontSize = 24.sp
         )
+        Column(modifier = Modifier
+            .padding(16.dp)
+            .background(Color.LightGray),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally){
+            if (isLoading) {
+                CircularProgressIndicator() // El cercle de càrrega
+            } else {
+                Text(
+                    text="Top Mundial:" ,
+                    fontSize = 18.sp,
+                    modifier = Modifier.padding(vertical = 4.dp  )
+                )
+                LazyColumn {
+                    items(items= ranking) { user ->
+                        Text(
+                            text = "${user.username}: ${user.highScore} pts",
+                            fontSize = 18.sp,
+                            modifier = Modifier.padding(vertical = 4.dp) 
+                        )
+                    }
+                }
+            }
+        }
+
 
         Button(
             onClick = onStartGame,
@@ -55,7 +83,20 @@ fun ScreenWelcome(
 
         Button(onClick = onCloseClick) {Text("Tancar")}
 
+        if (mostrarDialogError) { // Aquesta variable l'has de passar des de la navegació
+            AlertDialog(
+                onDismissRequest = onDismissDialog, // Quan toques fora de la finestra
+                title = { Text(text = "Avís de Connexió") },
+                text = { Text(text = missatgeError) },
+                confirmButton = {
+                    Button(onClick = onDismissDialog) {
+                        Text("D'acord")
+                    }
+                }
+            )
+        }
     }
 }
+
 
 

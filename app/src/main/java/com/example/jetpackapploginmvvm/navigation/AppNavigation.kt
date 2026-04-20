@@ -18,6 +18,8 @@ import com.example.jetpackapploginmvvm.view.simon.ScreenSimon
 import com.example.jetpackapploginmvvm.viewmodel.LoginViewModel
 import androidx.compose.ui.platform.LocalContext
 import com.example.jetpackapploginmvvm.model.AppDatabase
+import com.example.jetpackapploginmvvm.model.UserDao
+import com.example.jetpackapploginmvvm.viewmodel.WelcomeViewModel
 
 // FUNCIONS AUXILIARS FIRA DE LA UI
 
@@ -106,25 +108,39 @@ fun AppNavigation(
 
 
         // RUTA 2 : WELCOME
+        // Dins del NavHost, a la ruta de Welcome:
         composable(
             route = AppScreens.Welcome.route,
-            arguments = listOf(navArgument("username", :: configurarArgUsername))
-        ){
-            // Alerta  -> !!!
-            backStackEntry ->
-            // backStackEntry és un paràmetre de composable,
-            // en concret composable( route, arguments, (backStackEntry) -> {Lambda} )
-            val username = backStackEntry.arguments?.getString("username") ?: "Desconegut"
+            arguments = listOf(navArgument("username") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val username = backStackEntry.arguments?.getString("username") ?: ""
+            val context = LocalContext.current
+            val db = AppDatabase.getDatabase(context)
 
-            // Welcome no té estats, però si username com a paràmetre
+            // Instanciem el ViewModel usant la nostra Factory
+            val welcomeVM: WelcomeViewModel = viewModel(
+                factory = WelcomeViewModelFactory(db.userDao())
+            )
+
             ScreenWelcome(
-                msgWelcome = "Hola, $username",
-                onLogoutClick = ::ferLogout,
-                onCloseClick = onCloseApp,
-                // NOU EVENT: Quan clickem jugar!
-                onStartGame = ::anarASimon
+                username = username,
+                ranking = welcomeVM.rankingMundial,
+                isLoading = welcomeVM.estaCarregant,
+                // PASSEM ELS NOUS VALORS DEL DIÀLEG:
+                mostrarDialogError = welcomeVM.mostrarDialogError,
+                missatgeError = welcomeVM.textErrorDialog,
+                onDismissDialog = { welcomeVM.amagarDialog() },
+
+                onStartGame = { navController.navigate(AppScreens.Simon.route) },
+                onLogoutClick = {
+                    navController.navigate(AppScreens.Login.route) {
+                        popUpTo(AppScreens.Login.route) { inclusive = true }
+                    }
+                },
+                onCloseClick = onCloseApp
             )
         }
+
 
         // NOVA RUTA 3 : La pantalla del Simon
         composable (route = AppScreens.Simon.route){

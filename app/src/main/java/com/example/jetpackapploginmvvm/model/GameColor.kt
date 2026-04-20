@@ -1,6 +1,5 @@
 package com.example.jetpackapploginmvvm.model
 
-import androidx.compose.runtime.internal.isLiveLiteralsEnabled
 import androidx.compose.ui.graphics.Color
 
 enum class GameColor (val id: Int, val color: Color, val label:String){
