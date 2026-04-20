@@ -18,6 +18,7 @@ import com.example.jetpackapploginmvvm.view.simon.ScreenSimon
 import com.example.jetpackapploginmvvm.viewmodel.LoginViewModel
 import androidx.compose.ui.platform.LocalContext
 import com.example.jetpackapploginmvvm.model.AppDatabase
+import com.example.jetpackapploginmvvm.model.UserDao
 import com.example.jetpackapploginmvvm.viewmodel.WelcomeViewModel
 
 // FUNCIONS AUXILIARS FIRA DE LA UI
@@ -107,25 +108,31 @@ fun AppNavigation(
 
 
         // RUTA 2 : WELCOME
+        // Dins del NavHost, a la ruta de Welcome:
         composable(
             route = AppScreens.Welcome.route,
             arguments = listOf(navArgument("username") { type = NavType.StringType })
         ) { backStackEntry ->
             val username = backStackEntry.arguments?.getString("username") ?: ""
+            val context = LocalContext.current
+            val db = AppDatabase.getDatabase(context)
 
-            // Obtenim el nou ViewModel
-            val welcomeVM: WelcomeViewModel = viewModel()
-
+            // Instanciem el ViewModel usant la nostra Factory
+            val welcomeVM: WelcomeViewModel = viewModel(
+                factory = WelcomeViewModelFactory(db.userDao())
+            )
 
             ScreenWelcome(
                 username = username,
                 ranking = welcomeVM.rankingMundial,
                 isLoading = welcomeVM.estaCarregant,
-                onStartGame = {
-                    navController.navigate(AppScreens.Simon.route)
-                },
+                // PASSEM ELS NOUS VALORS DEL DIÀLEG:
+                mostrarDialogError = welcomeVM.mostrarDialogError,
+                missatgeError = welcomeVM.textErrorDialog,
+                onDismissDialog = { welcomeVM.amagarDialog() },
+
+                onStartGame = { navController.navigate(AppScreens.Simon.route) },
                 onLogoutClick = {
-                    // Torna al Login i esborra l'historial perquè no puguin tornar enrere
                     navController.navigate(AppScreens.Login.route) {
                         popUpTo(AppScreens.Login.route) { inclusive = true }
                     }

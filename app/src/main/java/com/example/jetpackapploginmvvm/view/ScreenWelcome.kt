@@ -17,6 +17,7 @@ import com.example.jetpackapploginmvvm.model.api.RemoteUser
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.AlertDialog
 
 // COM PINTO LA PANTALLA?
 
@@ -25,6 +26,9 @@ fun ScreenWelcome(
     username: String,
     ranking: List<RemoteUser>,
     isLoading: Boolean,
+    mostrarDialogError: Boolean,
+    missatgeError: String,
+    onDismissDialog: () -> Unit,
     onLogoutClick: () -> Unit,
     onCloseClick: () -> Unit,
     onStartGame:() -> Unit
@@ -78,7 +82,21 @@ fun ScreenWelcome(
         Button(onClick = onLogoutClick) {Text("Canviar Usuari")}
 
         Button(onClick = onCloseClick) {Text("Tancar")}
+
+        if (mostrarDialogError) { // Aquesta variable l'has de passar des de la navegació
+            AlertDialog(
+                onDismissRequest = onDismissDialog, // Quan toques fora de la finestra
+                title = { Text(text = "Avís de Connexió") },
+                text = { Text(text = missatgeError) },
+                confirmButton = {
+                    Button(onClick = onDismissDialog) {
+                        Text("D'acord")
+                    }
+                }
+            )
+        }
     }
 }
+
 
 
