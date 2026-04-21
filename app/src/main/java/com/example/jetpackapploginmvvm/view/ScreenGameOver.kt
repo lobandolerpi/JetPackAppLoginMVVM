@@ -12,7 +12,7 @@ import androidx.navigation.NavController
 import com.example.jetpackapploginmvvm.navigation.AppScreens
 
 @Composable
-fun ScreenGameOver(navController: NavController, resultado: String) {
+fun ScreenGameOver(navController: NavController, resultado: String, username: String, onRestart: () -> Unit) {
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -21,9 +21,9 @@ fun ScreenGameOver(navController: NavController, resultado: String) {
         Text(text = resultado, fontSize = 36.sp)
         Spacer(modifier = Modifier.height(32.dp))
         Button(onClick = {
-            // Navegamos al Welcome presionando el boton.
-            navController.navigate(AppScreens.Welcome.route) {
-                popUpTo(0) // Limpiamos el historial
+            onRestart()
+            navController.navigate(AppScreens.Welcome.createRoute(username)) {
+                popUpTo(AppScreens.Login.route) { inclusive = false }
             }
         }) {
             Text("Volver al Inicio")

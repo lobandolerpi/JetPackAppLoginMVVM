@@ -13,13 +13,18 @@ data class AhorcadoUiState(
     val letrasProbadas: Set<Char> = emptySet(),
     val intentosRestantes: Int = 6,
     val juegoTerminado: Boolean = false,
-    val victoria: Boolean = false
+    val victoria: Boolean = false,
+    // AÑADIMOS ESTO: Un flag para saber cuándo han pasado los 5 segundos
+    val navegarAGameOver: Boolean = false
 )
 
 class AhorcadoViewModel : ViewModel() {
 
     private val _uiState = MutableStateFlow(AhorcadoUiState())
     val uiState: StateFlow<AhorcadoUiState> = _uiState.asStateFlow()
+
+    // Mejora seleccionada: Diccionario Aleatorio [4]
+    private val diccionario = listOf("JETPACK", "KOTLIN", "ANDROID", "COMPOSE", "CORRUTINA", "ROOM")
 
     fun jugarLetra(letra: Char) {
         val estadoActual = _uiState.value
@@ -28,7 +33,6 @@ class AhorcadoViewModel : ViewModel() {
         val nuevasLetras = estadoActual.letrasProbadas + letra
         val acierto = estadoActual.palabraSecreta.contains(letra)
         val nuevosIntentos = if (acierto) estadoActual.intentosRestantes else estadoActual.intentosRestantes - 1
-
 
         val todasLetrasAcertadas = estadoActual.palabraSecreta.all { nuevasLetras.contains(it) }
         val sinIntentos = nuevosIntentos <= 0
@@ -41,12 +45,27 @@ class AhorcadoViewModel : ViewModel() {
             victoria = todasLetrasAcertadas
         )
 
-        //Aqui le decimos a la aplicacion que se espere 5 segundos antes de cambiar.
+        // Aquí completamos tu corrutina
         if (terminado) {
             viewModelScope.launch {
-                delay(5000)
+                delay(5000) // Suspensión de 5 segundos sin congelar la app [2, 3]
 
+                // Pasados los 5 segundos, actualizamos el estado para dar la orden de navegar
+                _uiState.value = _uiState.value.copy(
+                    navegarAGameOver = true
+                )
             }
         }
+    }
+    fun reiniciarJuego() {
+        val nuevaPalabra = diccionario.random()
+        _uiState.value = AhorcadoUiState(
+        palabraSecreta = nuevaPalabra,
+        letrasProbadas = emptySet(),
+        intentosRestantes = 6,
+        juegoTerminado = false,
+        victoria = false,
+        navegarAGameOver = false // Importante resetear esto también
+         )
     }
 }

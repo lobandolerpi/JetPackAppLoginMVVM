@@ -18,7 +18,6 @@ import com.example.jetpackapploginmvvm.view.ScreenWelcome
 import com.example.jetpackapploginmvvm.view.simon.ScreenSimon
 import com.example.jetpackapploginmvvm.viewmodel.LoginViewModel
 import com.example.jetpackapploginmvvm.ahorcado.AhorcadoViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.jetpackapploginmvvm.view.ScreenAhorcado
 import com.example.jetpackapploginmvvm.view.ScreenGameOver
 
@@ -56,7 +55,7 @@ fun AppNavigation(
     //Funcions de suport per als botons de les pantalles
     fun ferLogout() = navController.navigate(AppScreens.Login.route, ::configurarPopUpLogin)
     fun anarASimon() = navController.navigate(AppScreens.Simon.route)
-    fun anarAAhorcado() = navController.navigate(AppScreens.AhorcadoScreen.route)
+    fun anarAAhorcado(username: String) = navController.navigate(AppScreens.AhorcadoScreen.createRoute(username))
     fun tornarEnrere() = navController.popBackStack()
 
     // Funció de suport per processar la navegació que ve del ViewModel (Login)
@@ -116,7 +115,7 @@ fun AppNavigation(
                 onLogoutClick = ::ferLogout,
                 onCloseClick = onCloseApp,
                 // NOU EVENT: Quan clickem jugar!
-                onStartGame = ::anarAAhorcado
+                onStartGame = { anarAAhorcado(username) }
             )
         }
 
@@ -131,13 +130,31 @@ fun AppNavigation(
             )
         }
 
-        composable(route = AppScreens.AhorcadoScreen.route) {
-            ScreenAhorcado(navController, ahorcadoViewModel)
+        composable(
+            route = AppScreens.AhorcadoScreen.route,
+            arguments = listOf(navArgument("username", ::configurarArgUsername))
+        ) { backStackEntry ->
+            val username = backStackEntry.arguments?.getString("username") ?: ""
+            ScreenAhorcado(navController, ahorcadoViewModel, username)
         }
 
-        composable(route = AppScreens.GameOverScreen.route) { backStackEntry ->
+        composable(
+            route = AppScreens.GameOverScreen.route,
+            arguments = listOf(
+                navArgument("result") { type = NavType.StringType },
+                navArgument("username") { type = NavType.StringType } // Asegúrate de pedirlo aquí
+            )
+        ) { backStackEntry ->
             val resultado = backStackEntry.arguments?.getString("result") ?: "Fin"
-            ScreenGameOver(navController, resultado)
+            val username = backStackEntry.arguments?.getString("username") ?: ""
+
+            // Llamamos a tu pantalla pasándole los tres datos
+            ScreenGameOver(
+                navController = navController,
+                resultado = resultado,
+                username = username,
+                onRestart = { ahorcadoViewModel.reiniciarJuego() }
+            )
         }
     }
 }
