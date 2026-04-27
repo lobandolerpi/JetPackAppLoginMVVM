@@ -9,9 +9,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.NavController
 import com.example.jetpackapploginmvvm.R
 import com.example.jetpackapploginmvvm.navigation.AppScreens
@@ -22,6 +25,37 @@ import com.example.jetpackapploginmvvm.ahorcado.AhorcadoViewModel
 fun ScreenAhorcado(navController: NavController, viewModel: AhorcadoViewModel, username: String) {
     // Recolectamos el estado.
     val uiState by viewModel.uiState.collectAsState()
+
+    // Inicialización del juego al entrar
+    LaunchedEffect(Unit) {
+        viewModel.reiniciarJuego()
+    }
+
+    // Gestión del ciclo de vida (Segundo plano / Primer plano)
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_RESUME -> {
+                    // Volvemos a la app: activamos sensores y música
+                    viewModel.activarSensors()
+                    viewModel.controlarMusicaFons(true)
+                }
+                Lifecycle.Event.ON_PAUSE -> {
+                    // App en segundo plano: pausamos sensores y música para ahorrar batería
+                    viewModel.desactivarSensors()
+                    viewModel.controlarMusicaFons(false)
+                }
+                else -> {}
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        
+        onDispose {
+            // Al salir definitivamente de la pantalla, quitamos el observador
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
 
     val imagenAhorcado = when (uiState.intentosRestantes) {
         5 -> R.drawable.fail_1
@@ -88,4 +122,3 @@ fun ScreenAhorcado(navController: NavController, viewModel: AhorcadoViewModel, u
         }
     }
 }
-
