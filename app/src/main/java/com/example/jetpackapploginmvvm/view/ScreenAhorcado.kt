@@ -9,6 +9,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -37,12 +38,10 @@ fun ScreenAhorcado(navController: NavController, viewModel: AhorcadoViewModel, u
         val observer = LifecycleEventObserver { _, event ->
             when (event) {
                 Lifecycle.Event.ON_RESUME -> {
-                    // Volvemos a la app: activamos sensores y música
                     viewModel.activarSensors()
                     viewModel.controlarMusicaFons(true)
                 }
                 Lifecycle.Event.ON_PAUSE -> {
-                    // App en segundo plano: pausamos sensores y música para ahorrar batería
                     viewModel.desactivarSensors()
                     viewModel.controlarMusicaFons(false)
                 }
@@ -50,9 +49,7 @@ fun ScreenAhorcado(navController: NavController, viewModel: AhorcadoViewModel, u
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
-        
         onDispose {
-            // Al salir definitivamente de la pantalla, quitamos el observador
             lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
@@ -77,46 +74,62 @@ fun ScreenAhorcado(navController: NavController, viewModel: AhorcadoViewModel, u
         }
     }
 
-    Column(
-        modifier = Modifier.fillMaxSize().padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.SpaceEvenly
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background
     ) {
-        Text(text = "Intentos restantes: ${uiState.intentosRestantes}", fontSize = 24.sp)
-
-        Image(
-            painter = painterResource(id = imagenAhorcado),
-            contentDescription = "Estado del ahorcado",
-            modifier = Modifier.size(200.dp).padding(16.dp)
-        )
-        // Mostramos la palabra oculta
-        val palabraMostrada = uiState.palabraSecreta.map { letra ->
-            if (uiState.letrasProbadas.contains(letra)) letra else '_'
-        }.joinToString(" ")
-
-        Text(text = palabraMostrada, fontSize = 48.sp, letterSpacing = 8.sp)
-
-        // Teclado usando un Map y lambdas.
-        FlowRow(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center
+        Column(
+            modifier = Modifier.fillMaxSize().padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.SpaceEvenly
         ) {
-            ('A'..'Z').map { letra ->
-                val yaProbada = uiState.letrasProbadas.contains(letra)
+            Text(
+                text = "Intentos restantes: ${uiState.intentosRestantes}",
+                fontSize = 24.sp,
+                color = if (uiState.intentosRestantes < 3) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onBackground
+            )
 
-                // Animamos cuando se presione el boton.
-                val buttonColor by animateColorAsState(
-                    targetValue = if (yaProbada) Color.Gray else MaterialTheme.colorScheme.primary,
-                    animationSpec = tween(durationMillis = 500)
-                )
+            Image(
+                painter = painterResource(id = imagenAhorcado),
+                contentDescription = "Estado del ahorcado",
+                modifier = Modifier.size(200.dp).padding(16.dp),
+                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary) // Tintamos para que resalte en oscuro
+            )
 
-                Button(
-                    onClick = { viewModel.jugarLetra(letra) },
-                    enabled = !yaProbada && !uiState.juegoTerminado,
-                    colors = ButtonDefaults.buttonColors(containerColor = buttonColor),
-                    modifier = Modifier.padding(4.dp)
-                ) {
-                    Text(text = letra.toString())
+            val palabraMostrada = uiState.palabraSecreta.map { letra ->
+                if (uiState.letrasProbadas.contains(letra)) letra else '_'
+            }.joinToString(" ")
+
+            Text(
+                text = palabraMostrada,
+                fontSize = 48.sp,
+                letterSpacing = 8.sp,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+
+            FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                ('A'..'Z').map { letra ->
+                    val yaProbada = uiState.letrasProbadas.contains(letra)
+
+                    val buttonColor by animateColorAsState(
+                        targetValue = if (yaProbada) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.primary,
+                        animationSpec = tween(durationMillis = 500)
+                    )
+
+                    Button(
+                        onClick = { viewModel.jugarLetra(letra) },
+                        enabled = !yaProbada && !uiState.juegoTerminado,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = buttonColor,
+                            contentColor = if (yaProbada) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onPrimary
+                        ),
+                        modifier = Modifier.padding(4.dp)
+                    ) {
+                        Text(text = letra.toString())
+                    }
                 }
             }
         }

@@ -1,25 +1,15 @@
 package com.example.jetpackapploginmvvm.view
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Button
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.jetpackapploginmvvm.viewmodel.LoginUiState
 
-// COM PINTO LA PANTALLA?
 @Composable
 fun ScreenLogin(
     state: LoginUiState,
@@ -29,38 +19,66 @@ fun ScreenLogin(
     onLoginClick: () -> Unit,
     onCloseClick: () -> Unit
 ){
-    Column (
-        modifier = Modifier.fillMaxSize().padding(16.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background
     ) {
-        Text(
-            text = state.message,
-            modifier = Modifier
-                .background(Color.Cyan)
-                .padding(16.dp)
-                .fillMaxWidth()
-        )
+        Column (
+            modifier = Modifier.fillMaxSize().padding(16.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            if (state.message.isNotBlank()) {
+                Text(
+                    text = state.message,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier
+                        .padding(bottom = 16.dp)
+                        .fillMaxWidth()
+                )
+            }
 
-        OutlinedTextField( value = state.username, onValueChange = onUsernameChange, label = { Text("User") })
-        OutlinedTextField( value = state.password, onValueChange = onPasswordChange, label = { Text("Pass") })
+            OutlinedTextField(
+                value = state.username,
+                onValueChange = onUsernameChange,
+                label = { Text("User") },
+                modifier = Modifier.fillMaxWidth(0.8f)
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            OutlinedTextField(
+                value = state.password,
+                onValueChange = onPasswordChange,
+                label = { Text("Pass") },
+                modifier = Modifier.fillMaxWidth(0.8f)
+            )
 
-        Row {
-            Button(onClick = onRegisterClick) { Text("Crear usuari") }
-            Spacer(Modifier.width(8.dp))
-            Button(onClick = onLoginClick) { Text("Entrar") }
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Row {
+                Button(onClick = onRegisterClick) { Text("Crear usuari") }
+                Spacer(Modifier.width(8.dp))
+                Button(onClick = onLoginClick) { Text("Entrar") }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+            TextButton(onClick = onCloseClick) { Text("Tancar") }
+
+            if (state.errorMsg.isNotBlank()) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer,
+                        contentColor = MaterialTheme.colorScheme.onErrorContainer
+                    ),
+                    modifier = Modifier.fillMaxWidth(0.8f)
+                ) {
+                    Text(
+                        text = state.errorMsg,
+                        modifier = Modifier.padding(16.dp),
+                        fontSize = 14.sp
+                    )
+                }
+            }
         }
-
-        Button(onClick = onCloseClick) {Text("Tancar")}
-
-        Text(
-            text = state.errorMsg,
-            modifier = Modifier
-                .background(Color(255,200,200))
-                .padding(16.dp)
-                .fillMaxWidth()
-        )
     }
 }
-
-

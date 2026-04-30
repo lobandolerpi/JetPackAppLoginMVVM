@@ -1,11 +1,11 @@
 package com.example.jetpackapploginmvvm.view
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.Button
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -13,20 +13,35 @@ import com.example.jetpackapploginmvvm.navigation.AppScreens
 
 @Composable
 fun ScreenGameOver(navController: NavController, resultado: String, username: String, onRestart: () -> Unit) {
-    Column(
+    Surface(
         modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        color = MaterialTheme.colorScheme.background
     ) {
-        Text(text = resultado, fontSize = 36.sp)
-        Spacer(modifier = Modifier.height(32.dp))
-        Button(onClick = {
-            onRestart()
-            navController.navigate(AppScreens.Welcome.createRoute(username)) {
-                popUpTo(AppScreens.Login.route) { inclusive = false }
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = resultado,
+                fontSize = 42.sp,
+                fontWeight = FontWeight.Bold,
+                color = if (resultado.contains("Ganaste", ignoreCase = true)) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+            )
+            
+            Spacer(modifier = Modifier.height(48.dp))
+            
+            Button(
+                onClick = {
+                    onRestart()
+                    navController.navigate(AppScreens.Welcome.createRoute(username)) {
+                        popUpTo(AppScreens.Login.route) { inclusive = false }
+                    }
+                },
+                modifier = Modifier.fillMaxWidth(0.6f).height(56.dp)
+            ) {
+                Text("Volver al Inicio", fontSize = 18.sp)
             }
-        }) {
-            Text("Volver al Inicio")
         }
     }
 }
