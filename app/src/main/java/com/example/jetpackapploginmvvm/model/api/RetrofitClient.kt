@@ -4,7 +4,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitClient {
-    // La raíz de la dirección (¡Debe acabar en / obligatoriamente!)
+    // La raíz de la dirección
     private const val BASE_URL = "https://raw.githubusercontent.com/"
 
     val apiService: ApiService by lazy {
