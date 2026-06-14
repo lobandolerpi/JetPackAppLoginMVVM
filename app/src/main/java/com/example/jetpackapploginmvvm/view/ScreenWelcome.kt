@@ -31,22 +31,25 @@ fun ScreenWelcome(
     onDismissDialog: () -> Unit,
     onLogoutClick: () -> Unit,
     onCloseClick: () -> Unit,
+    onGoCredits:() -> Unit,
     onStartGame:() -> Unit
 ) {
     Column (
         modifier = Modifier
+            .background(Color.Black)
             .fillMaxSize().padding(16.dp)
-            .background(Color.Yellow),
+            .background(Color.Black),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ){
         Text(
             text = "Hola, $username!",
-            fontSize = 24.sp
+            fontSize = 24.sp,
+            color = Color.White,
         )
         Column(modifier = Modifier
             .padding(16.dp)
-            .background(Color.LightGray),
+            .background(Color.Gray),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally){
             if (isLoading) {
@@ -55,14 +58,16 @@ fun ScreenWelcome(
                 Text(
                     text="Top Mundial:" ,
                     fontSize = 18.sp,
-                    modifier = Modifier.padding(vertical = 4.dp  )
+                    modifier = Modifier.padding(vertical = 4.dp  ),
+                    color = Color.White,
                 )
                 LazyColumn {
                     items(items= ranking) { user ->
                         Text(
                             text = "${user.username}: ${user.highScore} pts",
                             fontSize = 18.sp,
-                            modifier = Modifier.padding(vertical = 4.dp) 
+                            modifier = Modifier.padding(vertical = 4.dp),
+                            color = Color.White,
                         )
                     }
                 }
@@ -78,6 +83,8 @@ fun ScreenWelcome(
                 text="Jugar al Simon",
                 fontSize = 20.sp)
         }
+
+        Button(onClick = onGoCredits) {Text("Credits")}
 
         Button(onClick = onLogoutClick) {Text("Canviar Usuari")}
 

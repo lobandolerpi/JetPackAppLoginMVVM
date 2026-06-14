@@ -19,6 +19,7 @@ import com.example.jetpackapploginmvvm.viewmodel.LoginViewModel
 import androidx.compose.ui.platform.LocalContext
 import com.example.jetpackapploginmvvm.model.AppDatabase
 import com.example.jetpackapploginmvvm.model.UserDao
+import com.example.jetpackapploginmvvm.view.ScreenCredits
 import com.example.jetpackapploginmvvm.viewmodel.WelcomeViewModel
 
 // FUNCIONS AUXILIARS FIRA DE LA UI
@@ -130,6 +131,7 @@ fun AppNavigation(
                 mostrarDialogError = welcomeVM.mostrarDialogError,
                 missatgeError = welcomeVM.textErrorDialog,
                 onDismissDialog = { welcomeVM.amagarDialog() },
+                onGoCredits = { navController.navigate(AppScreens.Credits.route) },
 
                 onStartGame = { navController.navigate(AppScreens.Simon.route) },
                 onLogoutClick = {
@@ -152,5 +154,17 @@ fun AppNavigation(
                 // Hem definit onCloseApp de manera general.
             )
         }
+
+        // NOVA RUTA 3 : Credits
+        composable (route = AppScreens.Credits.route){
+            ScreenCredits(
+                onGoBackClick = ::tornarEnrere,
+                //torna enrera 1 a l'historial de navegació.
+
+                onCloseClick = onCloseApp
+                // Hem definit onCloseApp de manera general.
+            )
+        }
+
     }
 }

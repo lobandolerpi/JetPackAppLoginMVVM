@@ -27,8 +27,9 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.jetpackapploginmvvm.viewmodel.ButtonState
 import com.example.jetpackapploginmvvm.viewmodel.SimonViewmodel
+import com.example.jetpackapploginmvvm.viewmodel.ButtonState
+
 
 // Amb això evitarem una lambda.
 // el que fa es crear un Botó Simon Button.
